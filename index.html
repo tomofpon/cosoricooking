@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COSORI調理ナビ | COSORI Air Fryer Guide & Timer</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Noto Sans JP"', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff7ed',
+                            100: '#ffedd5',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c',
+                            900: '#7c2d12',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .timer-active-pulse {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col pb-24 md:pb-12">
+
+    <!-- Header Navigation -->
+    <header class="sticky top-0 z-30 bg-slate-900/95 backdrop-blur-md border-b border-slate-800 shadow-lg">
+        <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                    <i class="fa-solid font-bold fa-fire text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight text-white flex items-center gap-2">
+                        COSORI調理ナビ
+                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
+                            公式対応
+                        </span>
+                    </h1>
+                    <p class="text-xs text-slate-400">調理温度・時間目安 ＆ AIネット検索機能</p>
+                </div>
+            </div>
+
+            <!-- Action Controls -->
+            <div class="flex items-center gap-2">
+                <button id="btn-fav-filter-desktop" onclick="toggleFavoriteFilter()" class="hidden sm:flex px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs items-center gap-2 hover:text-amber-400 hover:border-slate-600 transition-all">
+                    <i id="fav-icon-desktop" class="fa-regular fa-star text-sm"></i>
+                    <span>お気に入り</span>
+                </button>
+
+                <button onclick="openFormModal()" class="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 transition-all">
+                    <i class="fa-solid fa-plus"></i>
+                    <span class="hidden sm:inline">手動追加</span>
+                </button>
+
+                <button onclick="resetDataToDefault()" title="初期メニューデータにリセット" class="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-400 hover:text-rose-400 text-xs transition-all">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
+
+        <!-- Search & Web AI Search Controls -->
+        <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
+            <!-- Search Bar -->
+            <div class="relative w-full md:w-96 flex-1">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                <input type="text" id="search-input" placeholder="食材・料理名で検索 (例: 羊肉, ラムチョップ, 冷凍シュウマイ)" 
+                    oninput="handleSearch()"
+                    onkeydown="if(event.key==='Enter') executeWebSearchFromInput()"
+                    class="w-full bg-slate-800/90 border border-slate-700/80 rounded-xl pl-10 pr-28 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all">
+                <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    <button id="search-clear" onclick="clearSearch()" class="hidden text-slate-400 hover:text-white p-1">
+                        <i class="fa-solid fa-xmark text-sm"></i>
+                    </button>
+                    <button id="btn-quick-web-search" onclick="executeWebSearchFromInput()" title="ネットで検索して追加" 
+                        class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shadow-md">
+                        <i class="fa-solid fa-globe"></i>
+                        <span class="hidden sm:inline">ネット検索</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Favorite Toggle -->
+            <div class="flex sm:hidden w-full justify-end">
+                <button id="btn-fav-filter" onclick="toggleFavoriteFilter()" class="w-full py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs flex items-center justify-center gap-2 hover:text-amber-400 transition-colors">
+                    <i id="fav-icon-mobile" class="fa-regular fa-star"></i>
+                    <span>お気に入り指定</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-2 hide-scrollbar border-b border-slate-800/80">
+            <button onclick="filterCategory('all')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-orange-500 text-white shadow-lg shadow-orange-500/20" data-cat="all">
+                <i class="fa-solid fa-border-all mr-1.5"></i>すべて (<span id="count-all">0</span>)
+            </button>
+            <button onclick="filterCategory('meat')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="meat">
+                <i class="fa-solid fa-drumstick-bite mr-1.5 text-rose-400"></i>肉類 (<span id="count-meat">0</span>)
+            </button>
+            <button onclick="filterCategory('seafood')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="seafood">
+                <i class="fa-solid fa-fish mr-1.5 text-sky-400"></i>魚介類 (<span id="count-seafood">0</span>)
+            </button>
+            <button onclick="filterCategory('veggie')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="veggie">
+                <i class="fa-solid fa-carrot mr-1.5 text-emerald-400"></i>野菜・豆 (<span id="count-veggie">0</span>)
+            </button>
+            <button onclick="filterCategory('frozen')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="frozen">
+                <i class="fa-solid fa-snowflake mr-1.5 text-cyan-300"></i>冷凍食品 (<span id="count-frozen">0</span>)
+            </button>
+            <button onclick="filterCategory('reheat')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="reheat">
+                <i class="fa-solid fa-bread-slice mr-1.5 text-amber-400"></i>温め・パン (<span id="count-reheat">0</span>)
+            </button>
+            <button onclick="filterCategory('sweets')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="sweets">
+                <i class="fa-solid fa-cookie-bite mr-1.5 text-pink-400"></i>スイーツ (<span id="count-sweets">0</span>)
+            </button>
+        </div>
+
+        <!-- Food Items Grid -->
+        <div id="food-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Cards populated dynamically via JS -->
+        </div>
+
+        <!-- Empty State with Web Search Call-to-Action -->
+        <div id="empty-state" class="hidden py-12 px-4 text-center space-y-4 bg-slate-800/40 border border-slate-800 rounded-2xl">
+            <div class="text-4xl text-slate-500"><i class="fa-solid fa-magnifying-glass-location"></i></div>
+            <div class="space-y-1">
+                <p class="text-slate-300 font-bold text-base">登録されているメニューに見つかりませんでした</p>
+                <p class="text-slate-400 text-xs">「<span id="missing-query-text" class="text-orange-400 font-semibold"></span>」の調理設定をネットで検索しますか？</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
+                <button id="btn-empty-web-search" onclick="executeWebSearchFromInput()" 
+                    class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>「<span id="btn-missing-query-label"></span>」をネット検索して追加</span>
+                </button>
+                <button onclick="resetFilters()" class="w-full sm:w-auto px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 rounded-xl text-xs transition-colors">
+                    フィルターをクリア
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Floating Bottom Timer Bar -->
+    <div id="timer-bar" class="fixed bottom-0 left-0 right-0 z-40 bg-slate-900/95 border-t border-slate-700/80 backdrop-blur-md px-4 py-3 transform translate-y-full transition-transform duration-300 shadow-2xl">
+        <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div class="flex items-center gap-3 w-full sm:w-auto">
+                <div id="timer-badge" class="w-12 h-12 rounded-xl bg-orange-500/20 border border-orange-500/40 text-orange-400 flex items-center justify-center font-bold text-xl timer-active-pulse">
+                    <i id="timer-icon" class="fa-solid fa-stopwatch"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <span id="timer-food-title" class="font-bold text-white text-sm">チキンの唐揚げ</span>
+                        <span id="timer-temp-badge" class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] font-semibold px-2 py-0.5 rounded-full">195℃</span>
+                    </div>
+                    <p id="timer-status-text" class="text-xs text-slate-400">調理中... 途中で裏返してください</p>
+                </div>
+            </div>
+
+            <!-- Timer Countdown Display & Actions -->
+            <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-0 border-slate-800 pt-2 sm:pt-0">
+                <div class="text-right">
+                    <span id="timer-display" class="font-mono text-2xl font-extrabold text-amber-400 tracking-wider">12:00</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button id="btn-timer-toggle" onclick="toggleTimerState()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-500/20 flex items-center gap-1.5 transition-all">
+                        <i id="btn-timer-toggle-icon" class="fa-solid fa-pause"></i>
+                        <span id="btn-timer-toggle-label">一時停止</span>
+                    </button>
+                    <button onclick="stopTimer()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 rounded-xl text-xs transition-colors">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Searching Loading Modal -->
+    <div id="ai-loading-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
+            <div class="w-16 h-16 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-3xl mx-auto animate-spin">
+                <i class="fa-solid fa-compass"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-base font-bold text-white">ネット検索で調理データ取得中</h3>
+                <p id="ai-loading-target" class="text-xs text-cyan-300 font-medium">「〇〇」の温度・時間を調査中...</p>
+            </div>
+            <p class="text-[11px] text-slate-400 leading-relaxed bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
+                Web上の最新レシピやCOSORI公式目安データを自動検索してまとめます。
+            </p>
+        </div>
+    </div>
+
+    <!-- Food Detail / Tips Modal -->
+    <div id="detail-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-5 text-slate-100">
+            <button onclick="closeDetailModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white p-1">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <div class="flex items-center gap-3">
+                <div id="modal-icon" class="w-12 h-12 rounded-2xl bg-orange-500/20 text-orange-400 border border-orange-500/30 flex items-center justify-center text-2xl">
+                    <i class="fa-solid fa-utensils"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h3 id="modal-title" class="text-lg font-bold text-white">料理名</h3>
+                        <span id="modal-ai-badge" class="hidden text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold px-2 py-0.5 rounded-full">
+                            <i class="fa-solid fa-globe"></i> Web検索取得
+                        </span>
+                    </div>
+                    <span id="modal-category" class="text-xs text-slate-400">カテゴリ</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 text-xs">
+                <div>
+                    <span class="text-slate-400 block mb-0.5">調理温度</span>
+                    <span id="modal-temp" class="font-bold text-orange-400 text-base">195℃</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block mb-0.5">標準目安時間</span>
+                    <span id="modal-time" class="font-bold text-amber-300 text-base">10〜13分</span>
+                </div>
+                <div class="col-span-2 border-t border-slate-800 pt-2 flex justify-between items-center">
+                    <span class="text-slate-400">途中のひっくり返し:</span>
+                    <span id="modal-flip" class="font-semibold text-slate-200">調理開始から約6分後</span>
+                </div>
+            </div>
+
+            <!-- Tips & Advice Box -->
+            <div class="space-y-2">
+                <h4 class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
+                    <i class="fa-solid fa-lightbulb"></i> 美味しく仕上げるコツ・注意点
+                </h4>
+                <p id="modal-tips" class="text-xs text-slate-300 leading-relaxed bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+                    ここにコツが表示されます。
+                </p>
+            </div>
+
+            <!-- Grounding Sources (if AI searched) -->
+            <div id="modal-sources-container" class="hidden space-y-1 border-t border-slate-800 pt-3">
+                <span class="text-[10px] text-slate-400 block"><i class="fa-solid fa-link mr-1"></i>参照Web情報源:</span>
+                <div id="modal-sources-list" class="flex flex-wrap gap-2 text-[10px]"></div>
+            </div>
+
+            <!-- Modal Action Buttons -->
+            <div class="flex items-center gap-2 pt-2">
+                <button id="modal-edit-btn" class="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-slate-200 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-pen-to-square"></i>
+                    <span>編集</span>
+                </button>
+                <button id="modal-delete-btn" class="px-4 py-3 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/30 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5">
+                    <i class="fa-solid fa-trash"></i>
+                    <span>削除</span>
+                </button>
+                <button id="modal-start-timer-btn" class="flex-1 py-3 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-500/25 transition-all flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-play"></i>
+                    <span>タイマー開始</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Food Form Modal -->
+    <div id="form-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-md w-full p-6 shadow-2xl relative space-y-4 text-slate-100 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeFormModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 id="form-modal-title" class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-orange-400"></i> メニューの編集
+            </h3>
+
+            <form id="food-form" onsubmit="saveFoodForm(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="form-food-id" value="">
+
+                <div>
+                    <label class="block text-slate-300 mb-1">料理・食材名 <span class="text-rose-400">*</span></label>
+                    <input type="text" id="form-name" required placeholder="例: エビフライ, 鶏の唐揚げ" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-orange-500">
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 mb-1">カテゴリ</label>
+                        <select id="form-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                            <option value="meat">肉類</option>
+                            <option value="seafood">魚介類</option>
+                            <option value="veggie">野菜・豆</option>
+                            <option value="frozen">冷凍食品</option>
+                            <option value="reheat">温め・パン</option>
+                            <option value="sweets">スイーツ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 mb-1">調理温度 (℃)</label>
+                        <input type="number" id="form-temp" required value="190" min="100" max="230" step="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-slate-300 mb-1">目安時間 (最短分)</label>
+                        <input type="number" id="form-min-time" required value="10" min="1" max="120" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-slate-300 mb-1">目安時間 (最長分)</label>
+                        <input type="number" id="form-max-time" required value="13" min="1" max="120" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-1">ひっくり返しタイミング</label>
+                    <input type="text" id="form-flip" placeholder="例: 残り時間半分で一度裏返す" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-slate-300 mb-1">コツ・アドバイス</label>
+                    <textarea id="form-tips" rows="3" placeholder="油スプレーを使う、アルミホイルを敷くなど" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none"></textarea>
+                </div>
+
+                <div class="flex items-center gap-2 pt-2">
+                    <button type="button" onclick="closeFormModal()" class="flex-1 py-2.5 bg-slate-700 hover:bg-slate-600 text-slate-300 font-bold rounded-xl transition-colors">
+                        キャンセル
+                    </button>
+                    <button type="submit" class="flex-1 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl shadow-lg shadow-orange-500/20 transition-colors">
+                        保存する
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div id="delete-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-5 shadow-2xl relative space-y-4 text-slate-100">
+            <div class="flex items-center gap-3 text-rose-400">
+                <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                <h3 class="font-bold text-white text-base">メニューの削除</h3>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+                「<span id="delete-food-name" class="font-bold text-white"></span>」をリストから削除しますか？<br>この操作は取り消せません（初期化ボタンで元に戻せます）。
+            </p>
+            <div class="flex items-center gap-2 pt-2">
+                <button onclick="closeDeleteModal()" class="flex-1 py-2 bg-slate-700 hover:bg-slate-600 text-slate-300 rounded-xl text-xs font-bold transition-colors">
+                    キャンセル
+                </button>
+                <button id="confirm-delete-btn" class="flex-1 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-colors">
+                    削除する
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-16 right-4 z-50 transform translate-x-full transition-transform duration-300 bg-slate-800 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2">
+        <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
+        <span id="toast-msg">メッセージ</span>
+    </div>
+
+    <script>
+        // Default COSORI Master Food Database
+        const masterFoodDatabase = [
+            // Meat
+            {
+                id: 'meat-karage',
+                name: '鶏の唐揚げ',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 195, time: [10, 13],
+                flipTime: '調理時間半分（約6分目）でひっくり返す',
+                tips: '片栗粉や唐揚げ粉を薄くまぶし、余分な粉を落とします。仕上げに200℃で1〜2分加熱するとサクサク感倍増！',
+                tags: ['からあげ', 'とり', '鶏肉', '揚物']
+            },
+            {
+                id: 'meat-yakitori',
+                name: '焼き鳥 (タレ・塩)',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 195, time: [8, 12],
+                flipTime: '5〜6分目（半分）でひっくり返す',
+                tips: '串の持ち手部分にアルミホイルを巻くと焦げ付きを防止できます。タレは後半に塗り直すと香ばしさが格段に高まります。',
+                tags: ['やきとり', '串焼き', 'おつまみ', '鶏肉']
+            },
+            {
+                id: 'meat-saute',
+                name: 'チキンソテー (もも肉)',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 190, time: [13, 16],
+                flipTime: '皮目を上にしてセット。8分経過時に裏返す',
+                tips: '皮目を上にして入れます。肉厚な部分は隠し包丁を入れておくと火が均一に通ります。',
+                tags: ['チキン', 'もも肉', 'ソテー', '鶏肉']
+            },
+            {
+                id: 'meat-mune',
+                name: '鶏むね肉・ささみ',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 180, time: [8, 10],
+                flipTime: '残り5分前で一回裏返す',
+                tips: '加熱しすぎるとパサつきやすいので注意。マヨネーズやオリーブオイルでコーティングするとしっとり仕上がります。',
+                tags: ['むね肉', 'ささみ', 'ヘルシー', '鶏肉']
+            },
+            {
+                id: 'meat-teba',
+                name: '手羽先 / 手羽元',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 195, time: [12, 16],
+                flipTime: '10分経過時に裏返す',
+                tips: '皮の脂分がほどよく落ちてパリッと焼き上がります。塩コショウや甘辛タレがよく合います。',
+                tags: ['てばさき', '手羽元', 'おつまみ']
+            },
+            {
+                id: 'meat-porkbelly',
+                name: '豚バラカリカリ焼き / サムギョプサル',
+                category: 'meat',
+                icon: 'fa-bacon',
+                iconColor: 'text-rose-400',
+                temp: 195, time: [8, 11],
+                flipTime: '半分（約5分）経過でひっくり返す',
+                tips: '余分な脂が底にドリップしてとてもヘルシー。カリカリ食感が好きなら200℃で＋2分追加！',
+                tags: ['豚バラ', '豚肉', 'サムギョプサル']
+            },
+            {
+                id: 'meat-tonkatsu',
+                name: '生豚カツ (衣付き)',
+                category: 'meat',
+                icon: 'fa-cubes-stacked',
+                iconColor: 'text-rose-400',
+                temp: 190, time: [10, 13],
+                flipTime: '7分前後にひっくり返す',
+                tips: 'パン粉の表面にオイルスプレーを均一にかけるのがコツ！粉っぽさが消えてお店のサクサク感になります。',
+                tags: ['とんかつ', '豚カツ', 'フライ']
+            },
+            {
+                id: 'meat-menchi',
+                name: 'メンチカツ (生の衣付き)',
+                category: 'meat',
+                icon: 'fa-circle-dot',
+                iconColor: 'text-rose-400',
+                temp: 190, time: [12, 15],
+                flipTime: '約8分経過で裏返す',
+                tips: '衣表面全体に少量のオイルスプレーを吹きかけると、ジューシーでサクサクに出来上がります。',
+                tags: ['メンチカツ', 'ひき肉', '揚物']
+            },
+            {
+                id: 'meat-hamburg',
+                name: '自家製ハンバーグ',
+                category: 'meat',
+                icon: 'fa-circle-dot',
+                iconColor: 'text-rose-400',
+                temp: 180, time: [10, 13],
+                flipTime: '7分経過でひっくり返す',
+                tips: '中央をくぼませてセット。肉汁を閉じ込めるため途中で余分な肉汁が出てもあせらず加熱します。',
+                tags: ['ハンバーグ', 'ひき肉', '洋食']
+            },
+            {
+                id: 'meat-roastbeef',
+                name: 'ローストビーフ (ブロック)',
+                category: 'meat',
+                icon: 'fa-bacon',
+                iconColor: 'text-rose-400',
+                temp: 190, time: [12, 16],
+                flipTime: '半分経過で1度ひっくり返す',
+                tips: '加熱後、アルミホイルに包んで20分放置し予熱で通すと絶品ミディアムレアになります。',
+                tags: ['ローストビーフ', '牛肉', 'ごちそう']
+            },
+
+            // Seafood
+            {
+                id: 'fish-salmon',
+                name: '鮭の切り身 (塩焼き)',
+                category: 'seafood',
+                icon: 'fa-fish',
+                iconColor: 'text-sky-400',
+                temp: 190, time: [7, 9],
+                flipTime: '裏返し不要（皮目を上にしてセット）',
+                tips: 'クッキングシートを敷いて皮目を上にして焼くと、パリッとした皮とフワッとした身になります。',
+                tags: ['さけ', '鮭', '魚', '焼き魚']
+            },
+            {
+                id: 'fish-mackerel',
+                name: 'サバの塩焼き / 文化干し',
+                category: 'seafood',
+                icon: 'fa-fish',
+                iconColor: 'text-sky-400',
+                temp: 190, time: [8, 10],
+                flipTime: '皮目を上にして最後まで加熱',
+                tips: 'サバの自前の脂で揚げるように香ばしく焼けます。クッキングシートがあると後片付けが楽です。',
+                tags: ['サバ', '鯖', '魚類']
+            },
+            {
+                id: 'fish-shrimp',
+                name: 'エビのガーリック焼き / エビフライ',
+                category: 'seafood',
+                icon: 'fa-shrimp',
+                iconColor: 'text-sky-400',
+                temp: 190, time: [6, 8],
+                flipTime: '残り3〜4分で一度返す',
+                tips: '殻付き海老はガーリックオイルを絡めると絶品。殻ごとパリパリ食べられます。',
+                tags: ['えび', 'エビ', '海老', 'シーフード']
+            },
+
+            // Veggies & Beans
+            {
+                id: 'veg-fries',
+                name: '自家製フライドポテト',
+                category: 'veggie',
+                icon: 'fa-vial',
+                iconColor: 'text-emerald-400',
+                temp: 195, time: [12, 16],
+                flipTime: '5分ごとにバスケットをシャッフル',
+                tips: 'カット後に水にさらし、水分をよく拭き取ってから小さじ1の油を全体に絡めて焼くのがベスト！',
+                tags: ['ポテト', 'じゃがいも', 'フライドポテト']
+            },
+            {
+                id: 'veg-sweetpotato',
+                name: 'ねっとり焼き芋 (中サイズ)',
+                category: 'veggie',
+                icon: 'fa-carrot',
+                iconColor: 'text-emerald-400',
+                temp: 170, time: [30, 40],
+                flipTime: '20分経過時にひっくり返す',
+                tips: '低温で時間をかけて加熱すると糖度がアップ！竹串がスッと刺されば出来上がり。',
+                tags: ['やきいも', '焼き芋', 'さつまいも', 'スイーツ']
+            },
+            {
+                id: 'veg-atsuage',
+                name: '厚揚げのカリカリ焼き',
+                category: 'veggie',
+                icon: 'fa-cubes',
+                iconColor: 'text-emerald-400',
+                temp: 195, time: [6, 9],
+                flipTime: '半分経過時にひっくり返す',
+                tips: '表面の油分だけで驚くほど外がカリッと中は熱々モチモチになります。生姜醤油やポン酢で！',
+                tags: ['あつあげ', '厚揚げ', '豆腐', 'おつまみ']
+            },
+
+            // Frozen Foods
+            {
+                id: 'froz-frenchfries',
+                name: '冷凍フライドポテト',
+                category: 'frozen',
+                icon: 'fa-snowflake',
+                iconColor: 'text-cyan-300',
+                temp: 200, time: [10, 13],
+                flipTime: '5分ごとにバスケットを上下に振る',
+                tips: '解凍は不要！凍ったまま入れます。バスケットをしっかり振ると均一にサクサクになります。',
+                tags: ['れいとう', 'ポテト', 'マック風']
+            },
+            {
+                id: 'froz-gyoza',
+                name: '冷凍餃子 (揚げ餃子風)',
+                category: 'frozen',
+                icon: 'fa-snowflake',
+                iconColor: 'text-cyan-300',
+                temp: 190, time: [8, 11],
+                flipTime: '半分（約5分）経過でひっくり返す',
+                tips: '軽くオイルスプレーを振ってセットするとカリッカリの揚餃子風になります！',
+                tags: ['ギョーザ', '餃子', '冷凍']
+            },
+
+            // Reheat & Bakery
+            {
+                id: 'reheat-tempura',
+                name: '惣菜の天ぷら / 揚げ物温め',
+                category: 'reheat',
+                icon: 'fa-fire-burner',
+                iconColor: 'text-amber-400',
+                temp: 170, time: [3, 4],
+                flipTime: 'ひっくり返し不要',
+                tips: '余分な油が底に落ち、揚げたてのカリカリ感が完全に復活します！焦げ防止に170℃前後で。',
+                tags: ['温め直し', '天ぷら', 'コロッケ', '惣菜']
+            },
+            {
+                id: 'reheat-currypan',
+                name: '市販のカレーパン復元',
+                category: 'reheat',
+                icon: 'fa-bread-slice',
+                iconColor: 'text-amber-400',
+                temp: 165, time: [2, 4],
+                flipTime: 'ひっくり返し不要',
+                tips: 'パン屋・コンビニのカレーパンが見違えるほどクランチーになり中のルーもトロ熱に。',
+                tags: ['パン', 'カレーパン', 'サクサク']
+            },
+
+            // Sweets
+            {
+                id: 'sweet-cheesecake',
+                name: 'ミニバスクチーズケーキ',
+                category: 'sweets',
+                icon: 'fa-cheese',
+                iconColor: 'text-pink-400',
+                temp: 190, time: [10, 14],
+                flipTime: '裏返し不要',
+                tips: 'ココットや耐熱容器にクッキングシートを敷き生地を流し込んで焼くだけ！お店の焼き目が再現できます。',
+                tags: ['スイーツ', 'チーズケーキ', 'バスク']
+            }
+        ];
+
+        // State Variables
+        let foodDatabase = [];
+        let selectedCategory = 'all';
+        let searchQuery = '';
+        let favorites = JSON.parse(localStorage.getItem('af_favorites') || '[]');
+        let favoriteOnly = false;
+        let foodToDeleteId = null;
+
+        // Timer State
+        let timerInterval = null;
+        let timerTotalSeconds = 0;
+        let timerRemainingSeconds = 0;
+        let timerIsRunning = false;
+        let activeTimerFood = null;
+        let audioCtx = null;
+
+        // DOM Load Initializer
+        window.addEventListener('DOMContentLoaded', () => {
+            loadSavedDatabase();
+            updateCategoryCounts();
+            renderFoodGrid();
+        });
+
+        // Load custom database from localStorage or initialize default
+        function loadSavedDatabase() {
+            const saved = localStorage.getItem('af_custom_database_cosori_v1');
+            if (saved) {
+                try {
+                    foodDatabase = JSON.parse(saved);
+                } catch (e) {
+                    foodDatabase = [...masterFoodDatabase];
+                }
+            } else {
+                foodDatabase = [...masterFoodDatabase];
+                saveDatabaseToStorage();
+            }
+        }
+
+        function saveDatabaseToStorage() {
+            localStorage.setItem('af_custom_database_cosori_v1', JSON.stringify(foodDatabase));
+        }
+
+        function resetDataToDefault() {
+            if (confirm('登録・編集した全メニューを初期状態（COSORIデフォルト）に戻しますか？')) {
+                foodDatabase = [...masterFoodDatabase];
+                saveDatabaseToStorage();
+                showToast('メニューを初期状態にリセットしました');
+                renderFoodGrid();
+            }
+        }
+
+        // Category Filtering
+        function filterCategory(cat) {
+            selectedCategory = cat;
+            document.querySelectorAll('.cat-tab').forEach(btn => {
+                if (btn.dataset.cat === cat) {
+                    btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-orange-500 text-white shadow-lg shadow-orange-500/20';
+                } else {
+                    btn.className = 'cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700';
+                }
+            });
+            renderFoodGrid();
+        }
+
+        // Favorite Toggle Filter
+        function toggleFavoriteFilter() {
+            favoriteOnly = !favoriteOnly;
+            const iconMobile = document.getElementById('fav-icon-mobile');
+            const iconDesktop = document.getElementById('fav-icon-desktop');
+            const btnDesktop = document.getElementById('btn-fav-filter-desktop');
+
+            if (favoriteOnly) {
+                if (iconMobile) iconMobile.className = 'fa-solid fa-star text-amber-400';
+                if (iconDesktop) iconDesktop.className = 'fa-solid fa-star text-amber-400';
+                if (btnDesktop) btnDesktop.classList.add('border-amber-500', 'bg-amber-500/10');
+                showToast('お気に入りのみ表示中');
+            } else {
+                if (iconMobile) iconMobile.className = 'fa-regular fa-star';
+                if (iconDesktop) iconDesktop.className = 'fa-regular fa-star';
+                if (btnDesktop) btnDesktop.classList.remove('border-amber-500', 'bg-amber-500/10');
+            }
+            renderFoodGrid();
+        }
+
+        // Search Input Handling
+        function handleSearch() {
+            const input = document.getElementById('search-input');
+            searchQuery = input.value.trim().toLowerCase();
+            const clearBtn = document.getElementById('search-clear');
+            if (searchQuery.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            renderFoodGrid();
+        }
+
+        function clearSearch() {
+            document.getElementById('search-input').value = '';
+            searchQuery = '';
+            document.getElementById('search-clear').classList.add('hidden');
+            renderFoodGrid();
+        }
+
+        function resetFilters() {
+            clearSearch();
+            filterCategory('all');
+            favoriteOnly = false;
+            renderFoodGrid();
+        }
+
+        // Render Food Grid
+        function renderFoodGrid() {
+            const grid = document.getElementById('food-grid');
+            const emptyState = document.getElementById('empty-state');
+            grid.innerHTML = '';
+
+            const filtered = foodDatabase.filter(item => {
+                if (selectedCategory !== 'all' && item.category !== selectedCategory) return false;
+                if (favoriteOnly && !favorites.includes(item.id)) return false;
+                if (searchQuery) {
+                    const matchName = item.name.toLowerCase().includes(searchQuery);
+                    const matchTags = item.tags && item.tags.some(t => t.toLowerCase().includes(searchQuery));
+                    if (!matchName && !matchTags) return false;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                emptyState.classList.remove('hidden');
+                const rawQuery = document.getElementById('search-input').value.trim() || '検索ワード';
+                document.getElementById('missing-query-text').textContent = rawQuery;
+                document.getElementById('btn-missing-query-label').textContent = rawQuery;
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+
+            filtered.forEach(item => {
+                const isFav = favorites.includes(item.id);
+                const temp = item.temp || (item.tempCosori ? item.tempCosori : 190);
+                const timeRange = item.time || (item.timeCosori ? item.timeCosori : [10, 13]);
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800/80 border border-slate-700/80 hover:border-orange-500/50 rounded-2xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/5 flex flex-col justify-between space-y-3 group relative';
+
+                const aiBadgeHtml = item.isAiGenerated ? 
+                    `<span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.2 rounded" title="AIがWebから取得したメニュー">
+                        <i class="fa-solid fa-globe"></i> Web
+                    </span>` : '';
+
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex items-start justify-between gap-2">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-10 h-10 rounded-xl bg-slate-900 border border-slate-700/80 flex items-center justify-center text-lg ${item.iconColor || 'text-orange-400'}">
+                                    <i class="fa-solid ${item.icon || 'fa-utensils'}"></i>
+                                </div>
+                                <div>
+                                    <h3 class="font-bold text-white text-sm group-hover:text-orange-400 transition-colors flex items-center gap-1.5">
+                                        <span>${item.name}</span>
+                                        ${aiBadgeHtml}
+                                    </h3>
+                                    <span class="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-700/50">
+                                        ${getCategoryLabel(item.category)}
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1">
+                                <button onclick="openFormModal('${item.id}', event)" title="編集" class="text-slate-500 hover:text-slate-300 p-1 text-xs transition-colors">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </button>
+                                <button onclick="openDeleteModal('${item.id}', event)" title="削除" class="text-slate-500 hover:text-rose-400 p-1 text-xs transition-colors">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                                <button onclick="toggleFavorite('${item.id}', event)" title="お気に入り" class="text-slate-500 hover:text-amber-400 p-1 transition-colors">
+                                    <i class="${isFav ? 'fa-solid fa-star text-amber-400' : 'fa-regular fa-star'}"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Temp & Time Cards -->
+                        <div class="grid grid-cols-2 gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 text-xs">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">設定温度</span>
+                                <span class="font-extrabold text-orange-400 text-sm flex items-center gap-1">
+                                    <i class="fa-solid fa-temperature-three-quarters text-xs"></i>
+                                    ${temp}℃
+                                </span>
+                            </div>
+                            <div>
+                                <span class="text-[10px] text-slate-400 block">調理時間</span>
+                                <span class="font-extrabold text-amber-300 text-sm flex items-center gap-1">
+                                    <i class="fa-solid fa-clock text-xs"></i>
+                                    ${timeRange[0]}〜${timeRange[1]}分
+                                </span>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] text-slate-400 line-clamp-2 leading-relaxed">
+                            <i class="fa-solid fa-rotate-left text-orange-400/80 mr-1"></i>${item.flipTime}
+                        </p>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-1 border-t border-slate-700/40">
+                        <button onclick="openDetailModal('${item.id}')" class="flex-1 py-2 bg-slate-900 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium border border-slate-700/80 transition-colors">
+                            プロのコツ
+                        </button>
+                        <button onclick="startTimerForItem('${item.id}')" class="flex-1 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
+                            <i class="fa-solid fa-play text-[10px]"></i>
+                            <span>タイマー</span>
+                        </button>
+                    </div>
+                `;
+
+                grid.appendChild(card);
+            });
+
+            updateCategoryCounts();
+        }
+
+        function getCategoryLabel(cat) {
+            const map = {
+                meat: '肉類',
+                seafood: '魚介類',
+                veggie: '野菜・豆',
+                frozen: '冷凍食品',
+                reheat: '温め・パン',
+                sweets: 'スイーツ'
+            };
+            return map[cat] || 'その他';
+        }
+
+        // Category Count Updates
+        function updateCategoryCounts() {
+            const counts = { all: foodDatabase.length, meat: 0, seafood: 0, veggie: 0, frozen: 0, reheat: 0, sweets: 0 };
+            foodDatabase.forEach(item => {
+                if (counts[item.category] !== undefined) {
+                    counts[item.category]++;
+                }
+            });
+
+            for (let cat in counts) {
+                const el = document.getElementById(`count-${cat}`);
+                if (el) el.textContent = counts[cat];
+            }
+        }
+
+        // Favorite Handler
+        function toggleFavorite(id, event) {
+            if (event) event.stopPropagation();
+            const index = favorites.indexOf(id);
+            if (index > -1) {
+                favorites.splice(index, 1);
+                showToast('お気に入りから削除しました');
+            } else {
+                favorites.push(id);
+                showToast('お気に入りに追加しました');
+            }
+            localStorage.setItem('af_favorites', JSON.stringify(favorites));
+            renderFoodGrid();
+        }
+
+        // Gemini AI Web Search Logic
+        async function fetchGeminiWebSearch(query) {
+            const apiKey = ""; // Execution environment provides runtime key
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+
+            const payload = {
+                contents: [{
+                    parts: [{
+                        text: `COSORIエアフライヤーで「${query}」を調理する場合の最も美味しく安全な調理設定（高火力190〜205℃中心）をウェブ検索して抽出してください。`
+                    }]
+                }],
+                systemInstruction: {
+                    parts: [{
+                        text: `あなたはCOSORIエアフライヤー料理のプロシェフです。ウェブ検索結果を活用し、ユーザーが求めている「${query}」のCOSORIエアフライヤー調理設定（温度・時間・途中のひっくり返し方・おすすめのコツ）を生成してください。
+必ず返答は以下のキーを持つ純粋なJSON形式のみにしてください。説明テキストやコードブロック(\`\`\`json)は一切含めないでください。
+
+JSONフォーマット仕様:
+{
+  "name": "料理名（例: 羊肉の香草焼き）",
+  "category": "meat", // "meat", "seafood", "veggie", "frozen", "reheat", "sweets" のいずれか1つ
+  "temp": 195, // COSORI向け目安温度(整数℃, 180〜205℃)
+  "time": [10, 13], // COSORI向け目安時間 [最短分, 最長分]
+  "flipTime": "ひっくり返しやバスケットを振るタイマータイミングの日本語記述",
+  "tips": "オイルスプレーの使い方、焦げ防止、下ごしらえなどのコツ（日本語）",
+  "tags": ["タグ1", "タグ2"]
+}`
+                    }]
+                },
+                tools: [{ google_search: {} }]
+            };
+
+            const delays = [1000, 2000, 4000, 8000, 16000];
+            for (let attempt = 0; attempt < 5; attempt++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+                    const data = await response.json();
+                    return data;
+                } catch (err) {
+                    if (attempt === 4) throw err;
+                    await new Promise(r => setTimeout(r, delays[attempt]));
+                }
+            }
+        }
+
+        async function executeWebSearchFromInput() {
+            const query = document.getElementById('search-input').value.trim();
+            if (!query) {
+                showToast('検索したい料理名・食材名を入力してください', 'warning');
+                return;
+            }
+
+            const existing = foodDatabase.find(f => f.name.toLowerCase() === query.toLowerCase());
+            if (existing) {
+                showToast(`「${existing.name}」は既にリストに存在します`);
+                openDetailModal(existing.id);
+                return;
+            }
+
+            // Show Loading Modal
+            const loadingModal = document.getElementById('ai-loading-modal');
+            document.getElementById('ai-loading-target').textContent = `「${query}」のCOSORIレシピ設定を検索中...`;
+            loadingModal.classList.remove('hidden');
+
+            try {
+                const apiResult = await fetchGeminiWebSearch(query);
+                const candidate = apiResult.candidates?.[0];
+                const rawText = candidate?.content?.parts?.[0]?.text || '';
+
+                const attributions = candidate?.groundingMetadata?.groundingAttributions || [];
+                const sources = attributions.map(a => ({
+                    uri: a.web?.uri,
+                    title: a.web?.title || 'Web Recipe Data'
+                })).filter(s => s.uri);
+
+                let cleanJsonStr = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+                const jsonStart = cleanJsonStr.indexOf('{');
+                const jsonEnd = cleanJsonStr.lastIndexOf('}');
+                if (jsonStart !== -1 && jsonEnd !== -1) {
+                    cleanJsonStr = cleanJsonStr.substring(jsonStart, jsonEnd + 1);
+                }
+
+                const parsedData = JSON.parse(cleanJsonStr);
+
+                const newItem = {
+                    id: 'ai-' + Date.now(),
+                    name: parsedData.name || query,
+                    category: parsedData.category || 'meat',
+                    icon: getCategoryIcon(parsedData.category),
+                    iconColor: 'text-cyan-400',
+                    temp: parseInt(parsedData.temp) || 190,
+                    time: Array.isArray(parsedData.time) ? parsedData.time : [8, 12],
+                    flipTime: parsedData.flipTime || '途中で1度裏返してください',
+                    tips: parsedData.tips || 'Web検索から自動抽出した調理手順です。',
+                    tags: parsedData.tags || [query, 'AI検索'],
+                    isAiGenerated: true,
+                    sources: sources
+                };
+
+                foodDatabase.unshift(newItem);
+                saveDatabaseToStorage();
+
+                loadingModal.classList.add('hidden');
+                clearSearch();
+                showToast(`「${newItem.name}」をネットから追加しました！`, 'success');
+                renderFoodGrid();
+
+                openDetailModal(newItem.id);
+
+            } catch (error) {
+                console.error('Web Search Failed:', error);
+                loadingModal.classList.add('hidden');
+                showToast('ネット検索のデータ取得に失敗しました。手動で追加をお試しください。', 'warning');
+            }
+        }
+
+        function getCategoryIcon(cat) {
+            const map = {
+                meat: 'fa-drumstick-bite',
+                seafood: 'fa-fish',
+                veggie: 'fa-carrot',
+                frozen: 'fa-snowflake',
+                reheat: 'fa-bread-slice',
+                sweets: 'fa-cookie-bite'
+            };
+            return map[cat] || 'fa-utensils';
+        }
+
+        // Detail Modal
+        function openDetailModal(id) {
+            const item = foodDatabase.find(f => f.id === id);
+            if (!item) return;
+
+            const temp = item.temp || (item.tempCosori ? item.tempCosori : 190);
+            const timeRange = item.time || (item.timeCosori ? item.timeCosori : [10, 13]);
+
+            document.getElementById('modal-title').textContent = item.name;
+            document.getElementById('modal-category').textContent = getCategoryLabel(item.category);
+            document.getElementById('modal-temp').textContent = `${temp}℃`;
+            document.getElementById('modal-time').textContent = `${timeRange[0]}〜${timeRange[1]}分`;
+            document.getElementById('modal-flip').textContent = item.flipTime;
+            document.getElementById('modal-tips').textContent = item.tips;
+
+            // AI Badge & Sources
+            const aiBadge = document.getElementById('modal-ai-badge');
+            const sourcesContainer = document.getElementById('modal-sources-container');
+            const sourcesList = document.getElementById('modal-sources-list');
+
+            if (item.isAiGenerated) {
+                aiBadge.classList.remove('hidden');
+                if (item.sources && item.sources.length > 0) {
+                    sourcesContainer.classList.remove('hidden');
+                    sourcesList.innerHTML = item.sources.slice(0, 3).map(s => 
+                        `<a href="${s.uri}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline hover:text-cyan-300 truncate max-w-[200px]">
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> ${s.title}
+                        </a>`
+                    ).join('');
+                } else {
+                    sourcesContainer.classList.add('hidden');
+                }
+            } else {
+                aiBadge.classList.add('hidden');
+                sourcesContainer.classList.add('hidden');
+            }
+
+            const iconEl = document.getElementById('modal-icon');
+            iconEl.className = `w-12 h-12 rounded-2xl bg-orange-500/20 ${item.iconColor || 'text-orange-400'} border border-orange-500/30 flex items-center justify-center text-2xl`;
+            iconEl.innerHTML = `<i class="fa-solid ${item.icon || 'fa-utensils'}"></i>`;
+
+            document.getElementById('modal-edit-btn').onclick = () => {
+                closeDetailModal();
+                openFormModal(id);
+            };
+
+            document.getElementById('modal-delete-btn').onclick = () => {
+                closeDetailModal();
+                openDeleteModal(id);
+            };
+
+            const btn = document.getElementById('modal-start-timer-btn');
+            btn.onclick = () => {
+                closeDetailModal();
+                startTimerForItem(id);
+            };
+
+            document.getElementById('detail-modal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        // Add & Edit Form Modal Logic
+        function openFormModal(id = null, event = null) {
+            if (event) event.stopPropagation();
+
+            const formTitle = document.getElementById('form-modal-title');
+            const formFoodId = document.getElementById('form-food-id');
+
+            if (id) {
+                const item = foodDatabase.find(f => f.id === id);
+                if (!item) return;
+
+                formTitle.innerHTML = `<i class="fa-solid fa-pen-to-square text-orange-400"></i> 「${item.name}」の編集`;
+                formFoodId.value = item.id;
+                document.getElementById('form-name').value = item.name;
+                document.getElementById('form-category').value = item.category;
+                
+                const temp = item.temp || (item.tempCosori ? item.tempCosori : 190);
+                const timeRange = item.time || (item.timeCosori ? item.timeCosori : [10, 13]);
+                
+                document.getElementById('form-temp').value = temp;
+                document.getElementById('form-min-time').value = timeRange[0];
+                document.getElementById('form-max-time').value = timeRange[1];
+                document.getElementById('form-flip').value = item.flipTime || '';
+                document.getElementById('form-tips').value = item.tips || '';
+            } else {
+                formTitle.innerHTML = `<i class="fa-solid fa-plus text-orange-400"></i> 新しいメニューを手動追加`;
+                formFoodId.value = '';
+                document.getElementById('food-form').reset();
+            }
+
+            document.getElementById('form-modal').classList.remove('hidden');
+        }
+
+        function closeFormModal() {
+            document.getElementById('form-modal').classList.add('hidden');
+        }
+
+        function saveFoodForm(event) {
+            event.preventDefault();
+            const editId = document.getElementById('form-food-id').value;
+            const name = document.getElementById('form-name').value;
+            const category = document.getElementById('form-category').value;
+            const temp = parseInt(document.getElementById('form-temp').value);
+            const minTime = parseInt(document.getElementById('form-min-time').value);
+            const maxTime = parseInt(document.getElementById('form-max-time').value);
+            const flipTime = document.getElementById('form-flip').value || '調理時間半分で1度ひっくり返す';
+            const tips = document.getElementById('form-tips').value || '調理のコツメモです。';
+
+            if (editId) {
+                const index = foodDatabase.findIndex(f => f.id === editId);
+                if (index !== -1) {
+                    foodDatabase[index].name = name;
+                    foodDatabase[index].category = category;
+                    foodDatabase[index].temp = temp;
+                    foodDatabase[index].time = [minTime, maxTime];
+                    foodDatabase[index].flipTime = flipTime;
+                    foodDatabase[index].tips = tips;
+
+                    showToast(`「${name}」の設定を更新しました`);
+                }
+            } else {
+                const newFood = {
+                    id: 'custom-' + Date.now(),
+                    name: name,
+                    category: category,
+                    icon: getCategoryIcon(category),
+                    iconColor: 'text-amber-400',
+                    temp: temp,
+                    time: [minTime, maxTime],
+                    flipTime: flipTime,
+                    tips: tips,
+                    tags: [name, '手動追加']
+                };
+                foodDatabase.unshift(newFood);
+                showToast(`「${name}」を追加しました！`);
+            }
+
+            saveDatabaseToStorage();
+            closeFormModal();
+            renderFoodGrid();
+        }
+
+        // Delete Modal Logic
+        function openDeleteModal(id, event = null) {
+            if (event) event.stopPropagation();
+            const item = foodDatabase.find(f => f.id === id);
+            if (!item) return;
+
+            foodToDeleteId = id;
+            document.getElementById('delete-food-name').textContent = item.name;
+            document.getElementById('confirm-delete-btn').onclick = () => confirmDeleteFood(id);
+            document.getElementById('delete-modal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('delete-modal').classList.add('hidden');
+            foodToDeleteId = null;
+        }
+
+        function confirmDeleteFood(id) {
+            const item = foodDatabase.find(f => f.id === id);
+            foodDatabase = foodDatabase.filter(f => f.id !== id);
+            saveDatabaseToStorage();
+
+            const favIndex = favorites.indexOf(id);
+            if (favIndex > -1) {
+                favorites.splice(favIndex, 1);
+                localStorage.setItem('af_favorites', JSON.stringify(favorites));
+            }
+
+            closeDeleteModal();
+            showToast(`「${item ? item.name : 'メニュー'}」を削除しました`);
+            renderFoodGrid();
+        }
+
+        // Timer Logic & Audio Notifications
+        function startTimerForItem(id) {
+            const item = foodDatabase.find(f => f.id === id);
+            if (!item) return;
+
+            activeTimerFood = item;
+            const temp = item.temp || (item.tempCosori ? item.tempCosori : 190);
+            const timeRange = item.time || (item.timeCosori ? item.timeCosori : [10, 13]);
+            
+            const avgMinutes = Math.round((timeRange[0] + timeRange[1]) / 2);
+            timerTotalSeconds = avgMinutes * 60;
+            timerRemainingSeconds = timerTotalSeconds;
+
+            document.getElementById('timer-food-title').textContent = item.name;
+            document.getElementById('timer-temp-badge').textContent = `${temp}℃`;
+            document.getElementById('timer-status-text').textContent = item.flipTime;
+
+            const timerBar = document.getElementById('timer-bar');
+            timerBar.classList.remove('translate-y-full');
+
+            runTimer();
+            showToast(`${item.name} のタイマーを開始しました (${avgMinutes}分)`);
+        }
+
+        function runTimer() {
+            clearInterval(timerInterval);
+            timerIsRunning = true;
+            updateTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                if (timerRemainingSeconds > 0) {
+                    timerRemainingSeconds--;
+                    updateTimerDisplay();
+
+                    if (timerRemainingSeconds === Math.floor(timerTotalSeconds / 2)) {
+                        playBeepSound(600, 0.4);
+                        showToast('途中のひっくり返し（シェイク）のお時間です！', 'warning');
+                    }
+                } else {
+                    stopTimer();
+                    playAlarmSound();
+                    showToast('調理が完了しました！', 'success');
+                }
+            }, 1000);
+
+            updateTimerControlsUI();
+        }
+
+        function toggleTimerState() {
+            if (timerIsRunning) {
+                clearInterval(timerInterval);
+                timerIsRunning = false;
+                showToast('タイマーを一時停止しました');
+            } else {
+                if (timerRemainingSeconds > 0) {
+                    runTimer();
+                }
+            }
+            updateTimerControlsUI();
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerIsRunning = false;
+            document.getElementById('timer-bar').classList.add('translate-y-full');
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerRemainingSeconds / 60);
+            const secs = timerRemainingSeconds % 60;
+            document.getElementById('timer-display').textContent = 
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateTimerControlsUI() {
+            const btnIcon = document.getElementById('btn-timer-toggle-icon');
+            const btnLabel = document.getElementById('btn-timer-toggle-label');
+
+            if (timerIsRunning) {
+                btnIcon.className = 'fa-solid fa-pause';
+                btnLabel.textContent = '一時停止';
+            } else {
+                btnIcon.className = 'fa-solid fa-play';
+                btnLabel.textContent = '再開';
+            }
+        }
+
+        // Audio Beep
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playBeepSound(freq = 520, duration = 0.2) {
+            try {
+                initAudioContext();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log('Audio Context error', e);
+            }
+        }
+
+        function playAlarmSound() {
+            let beeps = 0;
+            const interval = setInterval(() => {
+                playBeepSound(880, 0.25);
+                beeps++;
+                if (beeps >= 5) clearInterval(interval);
+            }, 350);
+        }
+
+        // Toast
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastIcon = document.getElementById('toast-icon');
+
+            toastMsg.textContent = msg;
+            if (type === 'warning') {
+                toastIcon.className = 'fa-solid fa-bell text-amber-400';
+            } else if (type === 'success') {
+                toastIcon.className = 'fa-solid fa-circle-check text-emerald-400';
+            } else {
+                toastIcon.className = 'fa-solid fa-circle-info text-sky-400';
+            }
+
+            toast.classList.remove('translate-x-full');
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
