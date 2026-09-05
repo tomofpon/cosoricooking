@@ -66,8 +66,8 @@
                 <div>
                     <h1 class="font-bold text-lg leading-tight text-white flex items-center gap-2">
                         COSORI調理ナビ
-                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                            公式対応
+                        <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            200℃レシピ拡充版
                         </span>
                     </h1>
                     <p class="text-xs text-slate-400">調理温度・時間目安 ＆ AIネット検索機能</p>
@@ -79,6 +79,11 @@
                 <button id="btn-fav-filter-desktop" onclick="toggleFavoriteFilter()" class="hidden sm:flex px-3.5 py-2 rounded-xl border border-slate-700 bg-slate-800 text-slate-300 text-xs items-center gap-2 hover:text-amber-400 hover:border-slate-600 transition-all">
                     <i id="fav-icon-desktop" class="fa-regular fa-star text-sm"></i>
                     <span>お気に入り</span>
+                </button>
+
+                <button onclick="openDataModal()" title="データの出力・インポート・コード反映" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 text-xs font-bold flex items-center gap-1.5 transition-all">
+                    <i class="fa-solid fa-file-export"></i>
+                    <span class="hidden sm:inline">データ管理</span>
                 </button>
 
                 <button onclick="openFormModal()" class="px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold flex items-center gap-2 shadow-lg shadow-orange-500/20 transition-all">
@@ -100,7 +105,7 @@
             <!-- Search Bar -->
             <div class="relative w-full md:w-96 flex-1">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
-                <input type="text" id="search-input" placeholder="食材・料理名で検索 (例: 羊肉, ラムチョップ, 冷凍シュウマイ)" 
+                <input type="text" id="search-input" placeholder="食材・料理名で検索 (例: たこ焼き, ローストビーフ, 手羽中)" 
                     oninput="handleSearch()"
                     onkeydown="if(event.key==='Enter') executeWebSearchFromInput()"
                     class="w-full bg-slate-800/90 border border-slate-700/80 rounded-xl pl-10 pr-28 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all">
@@ -130,8 +135,11 @@
             <button onclick="filterCategory('all')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-orange-500 text-white shadow-lg shadow-orange-500/20" data-cat="all">
                 <i class="fa-solid fa-border-all mr-1.5"></i>すべて (<span id="count-all">0</span>)
             </button>
+            <button onclick="filterCategory('reheat')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="reheat">
+                <i class="fa-solid fa-bread-slice mr-1.5 text-amber-400"></i>朝ごはん・軽食・パン (<span id="count-reheat">0</span>)
+            </button>
             <button onclick="filterCategory('meat')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="meat">
-                <i class="fa-solid fa-drumstick-bite mr-1.5 text-rose-400"></i>肉類 (<span id="count-meat">0</span>)
+                <i class="fa-solid fa-drumstick-bite mr-1.5 text-rose-400"></i>肉のおかず (<span id="count-meat">0</span>)
             </button>
             <button onclick="filterCategory('seafood')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="seafood">
                 <i class="fa-solid fa-fish mr-1.5 text-sky-400"></i>魚介類 (<span id="count-seafood">0</span>)
@@ -141,9 +149,6 @@
             </button>
             <button onclick="filterCategory('frozen')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="frozen">
                 <i class="fa-solid fa-snowflake mr-1.5 text-cyan-300"></i>冷凍食品 (<span id="count-frozen">0</span>)
-            </button>
-            <button onclick="filterCategory('reheat')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="reheat">
-                <i class="fa-solid fa-bread-slice mr-1.5 text-amber-400"></i>温め・パン (<span id="count-reheat">0</span>)
             </button>
             <button onclick="filterCategory('sweets')" class="cat-tab px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition-all bg-slate-800 text-slate-400 hover:bg-slate-700" data-cat="sweets">
                 <i class="fa-solid fa-cookie-bite mr-1.5 text-pink-400"></i>スイーツ (<span id="count-sweets">0</span>)
@@ -185,8 +190,8 @@
                 </div>
                 <div>
                     <div class="flex items-center gap-2">
-                        <span id="timer-food-title" class="font-bold text-white text-sm">チキンの唐揚げ</span>
-                        <span id="timer-temp-badge" class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] font-semibold px-2 py-0.5 rounded-full">195℃</span>
+                        <span id="timer-food-title" class="font-bold text-white text-sm">から揚げ</span>
+                        <span id="timer-temp-badge" class="bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] font-semibold px-2 py-0.5 rounded-full">200℃</span>
                     </div>
                     <p id="timer-status-text" class="text-xs text-slate-400">調理中... 途中で裏返してください</p>
                 </div>
@@ -195,7 +200,7 @@
             <!-- Timer Countdown Display & Actions -->
             <div class="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t sm:border-0 border-slate-800 pt-2 sm:pt-0">
                 <div class="text-right">
-                    <span id="timer-display" class="font-mono text-2xl font-extrabold text-amber-400 tracking-wider">12:00</span>
+                    <span id="timer-display" class="font-mono text-2xl font-extrabold text-amber-400 tracking-wider">18:00</span>
                 </div>
                 <div class="flex items-center gap-2">
                     <button id="btn-timer-toggle" onclick="toggleTimerState()" class="px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-orange-500/20 flex items-center gap-1.5 transition-all">
@@ -240,6 +245,12 @@
                 <div>
                     <div class="flex items-center gap-2">
                         <h3 id="modal-title" class="text-lg font-bold text-white">料理名</h3>
+                        <span id="modal-vesync-badge" class="hidden text-[10px] bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 font-bold px-2 py-0.5 rounded-full">
+                            COSORI公式レシピ
+                        </span>
+                        <span id="modal-toiro-badge" class="hidden text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold px-2 py-0.5 rounded-full">
+                            トイロ家流
+                        </span>
                         <span id="modal-ai-badge" class="hidden text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold px-2 py-0.5 rounded-full">
                             <i class="fa-solid fa-globe"></i> Web検索取得
                         </span>
@@ -251,24 +262,24 @@
             <div class="grid grid-cols-2 gap-3 bg-slate-900/60 p-3.5 rounded-xl border border-slate-700/60 text-xs">
                 <div>
                     <span class="text-slate-400 block mb-0.5">調理温度</span>
-                    <span id="modal-temp" class="font-bold text-orange-400 text-base">195℃</span>
+                    <span id="modal-temp" class="font-bold text-orange-400 text-base">200℃</span>
                 </div>
                 <div>
                     <span class="text-slate-400 block mb-0.5">標準目安時間</span>
-                    <span id="modal-time" class="font-bold text-amber-300 text-base">10〜13分</span>
+                    <span id="modal-time" class="font-bold text-amber-300 text-base">18〜20分</span>
                 </div>
                 <div class="col-span-2 border-t border-slate-800 pt-2 flex justify-between items-center">
                     <span class="text-slate-400">途中のひっくり返し:</span>
-                    <span id="modal-flip" class="font-semibold text-slate-200">調理開始から約6分後</span>
+                    <span id="modal-flip" class="font-semibold text-slate-200">調理開始から約9分後</span>
                 </div>
             </div>
 
             <!-- Tips & Advice Box -->
             <div class="space-y-2">
                 <h4 class="text-xs font-bold text-orange-400 uppercase tracking-wider flex items-center gap-1.5">
-                    <i class="fa-solid fa-lightbulb"></i> 美味しく仕上げるコツ・注意点
+                    <i class="fa-solid fa-lightbulb"></i> 美味しく仕上げるコツ・下ごしらえ
                 </h4>
-                <p id="modal-tips" class="text-xs text-slate-300 leading-relaxed bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+                <p id="modal-tips" class="text-xs text-slate-300 leading-relaxed bg-slate-900/40 p-3 rounded-xl border border-slate-800 whitespace-pre-line">
                     ここにコツが表示されます。
                 </p>
             </div>
@@ -313,46 +324,46 @@
 
                 <div>
                     <label class="block text-slate-300 mb-1">料理・食材名 <span class="text-rose-400">*</span></label>
-                    <input type="text" id="form-name" required placeholder="例: エビフライ, 鶏の唐揚げ" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-orange-500">
+                    <input type="text" id="form-name" required placeholder="例: トースト, 焼きナス" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none focus:border-orange-500">
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-slate-300 mb-1">カテゴリ</label>
                         <select id="form-category" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
-                            <option value="meat">肉類</option>
+                            <option value="reheat">朝ごはん・軽食・パン</option>
+                            <option value="meat">肉のおかず</option>
                             <option value="seafood">魚介類</option>
                             <option value="veggie">野菜・豆</option>
                             <option value="frozen">冷凍食品</option>
-                            <option value="reheat">温め・パン</option>
                             <option value="sweets">スイーツ</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-slate-300 mb-1">調理温度 (℃)</label>
-                        <input type="number" id="form-temp" required value="190" min="100" max="230" step="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                        <input type="number" id="form-temp" required value="200" min="100" max="240" step="5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
                     </div>
                 </div>
 
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-slate-300 mb-1">目安時間 (最短分)</label>
-                        <input type="number" id="form-min-time" required value="10" min="1" max="120" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                        <input type="number" id="form-min-time" required value="10" min="1" max="180" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
                     </div>
                     <div>
                         <label class="block text-slate-300 mb-1">目安時間 (最長分)</label>
-                        <input type="number" id="form-max-time" required value="13" min="1" max="120" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                        <input type="number" id="form-max-time" required value="15" min="1" max="180" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
                     </div>
                 </div>
 
                 <div>
                     <label class="block text-slate-300 mb-1">ひっくり返しタイミング</label>
-                    <input type="text" id="form-flip" placeholder="例: 残り時間半分で一度裏返す" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
+                    <input type="text" id="form-flip" placeholder="例: 途中で一度裏返し、シェイクする" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-slate-300 mb-1">コツ・アドバイス</label>
-                    <textarea id="form-tips" rows="3" placeholder="油スプレーを使う、アルミホイルを敷くなど" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none"></textarea>
+                    <label class="block text-slate-300 mb-1">下ごしらえ・コツ</label>
+                    <textarea id="form-tips" rows="3" placeholder="予熱の有無、耐熱プレートの使用など" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2.5 text-white focus:outline-none"></textarea>
                 </div>
 
                 <div class="flex items-center gap-2 pt-2">
@@ -388,6 +399,63 @@
         </div>
     </div>
 
+    <!-- Data Export/Import Modal -->
+    <div id="data-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4 text-slate-100 max-h-[90vh] overflow-y-auto">
+            <button onclick="closeDataModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white">
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-database text-cyan-400"></i> データ管理・移行・コード反映
+            </h3>
+
+            <p class="text-xs text-slate-300 leading-relaxed">
+                スマホで追加・編集したメニューを別端末に引き継いだり、元のソースコードへ反映できます。
+            </p>
+
+            <div class="space-y-4 text-xs">
+                <!-- Option 1: Source Code Export -->
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/80 space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span class="font-bold text-cyan-300 flex items-center gap-1.5">
+                            <i class="fa-solid fa-code"></i> ① 元のソースコードに反映用
+                        </span>
+                        <button onclick="copyMasterCodeToClipboard()" class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-lg text-[11px] transition-colors">
+                            コードをコピー
+                        </button>
+                    </div>
+                    <p class="text-[11px] text-slate-400">
+                        全登録データを JavaScript の <code class="text-amber-300">masterFoodDatabase</code> 配列コードとして出力します。コピーしてHTMLファイル内のマスターデータ部分に上書き貼り付けしてください。
+                    </p>
+                </div>
+
+                <!-- Option 2: JSON Backup Export/Import -->
+                <div class="bg-slate-900/80 p-3.5 rounded-xl border border-slate-700/80 space-y-3">
+                    <span class="font-bold text-amber-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-right-left"></i> ② JSONデータのバックアップ・復元
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="copyJsonData()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg font-bold transition-colors">
+                            JSONをコピー
+                        </button>
+                        <button onclick="downloadJsonFile()" class="flex-1 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg font-bold transition-colors">
+                            ファイル保存
+                        </button>
+                    </div>
+
+                    <div class="pt-2 border-t border-slate-800 space-y-2">
+                        <label class="block text-slate-400 text-[11px]">JSONデータを貼り付けて復元:</label>
+                        <textarea id="import-json-textarea" rows="3" placeholder="ここに書き出したJSONテキストを貼り付け..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-white text-[11px] font-mono focus:outline-none focus:border-cyan-500"></textarea>
+                        <button onclick="importJsonData()" class="w-full py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-colors">
+                            データを読み込む（上書き）
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notification -->
     <div id="toast" class="fixed top-16 right-4 z-50 transform translate-x-full transition-transform duration-300 bg-slate-800 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-xl flex items-center gap-2">
         <i id="toast-icon" class="fa-solid fa-circle-check text-emerald-400"></i>
@@ -395,191 +463,509 @@
     </div>
 
     <script>
-        // Default COSORI Master Food Database
+        // Master Database (VeSync COSORI Official Blog Recipes + 200℃ Excel Added Recipes + Toiro Chart)
         const masterFoodDatabase = [
-            // Meat
+            // NEW ADDITIONS: Additional 200℃ Recipe Sheet 3 Menu Items
             {
-                id: 'meat-karage',
-                name: '鶏の唐揚げ',
+                id: 'rec200-tebanaka-salt',
+                name: '手羽中のカリカリ塩焼き',
                 category: 'meat',
                 icon: 'fa-drumstick-bite',
                 iconColor: 'text-rose-400',
-                temp: 195, time: [10, 13],
-                flipTime: '調理時間半分（約6分目）でひっくり返す',
-                tips: '片栗粉や唐揚げ粉を薄くまぶし、余分な粉を落とします。仕上げに200℃で1〜2分加熱するとサクサク感倍増！',
-                tags: ['からあげ', 'とり', '鶏肉', '揚物']
+                temp: 200, time: [12, 15],
+                flipTime: '裏返し不要（皮目を上にして敷き詰める）',
+                tips: '【200℃レシピ】酒を軽く揉み込み塩胡椒を多めに振って皮目を上にして並べます。200℃で15分焼くだけで皮がパリパリ・お肉ジューシーな絶品おつまみに！',
+                tags: ['手羽中', '塩焼き', 'おつまみ', '鶏肉', '200℃'],
+                isVesync: true
             },
             {
-                id: 'meat-yakitori',
-                name: '焼き鳥 (タレ・塩)',
-                category: 'meat',
-                icon: 'fa-drumstick-bite',
-                iconColor: 'text-rose-400',
-                temp: 195, time: [8, 12],
-                flipTime: '5〜6分目（半分）でひっくり返す',
-                tips: '串の持ち手部分にアルミホイルを巻くと焦げ付きを防止できます。タレは後半に塗り直すと香ばしさが格段に高まります。',
-                tags: ['やきとり', '串焼き', 'おつまみ', '鶏肉']
-            },
-            {
-                id: 'meat-saute',
-                name: 'チキンソテー (もも肉)',
-                category: 'meat',
-                icon: 'fa-drumstick-bite',
-                iconColor: 'text-rose-400',
-                temp: 190, time: [13, 16],
-                flipTime: '皮目を上にしてセット。8分経過時に裏返す',
-                tips: '皮目を上にして入れます。肉厚な部分は隠し包丁を入れておくと火が均一に通ります。',
-                tags: ['チキン', 'もも肉', 'ソテー', '鶏肉']
-            },
-            {
-                id: 'meat-mune',
-                name: '鶏むね肉・ささみ',
-                category: 'meat',
-                icon: 'fa-drumstick-bite',
-                iconColor: 'text-rose-400',
-                temp: 180, time: [8, 10],
-                flipTime: '残り5分前で一回裏返す',
-                tips: '加熱しすぎるとパサつきやすいので注意。マヨネーズやオリーブオイルでコーティングするとしっとり仕上がります。',
-                tags: ['むね肉', 'ささみ', 'ヘルシー', '鶏肉']
-            },
-            {
-                id: 'meat-teba',
-                name: '手羽先 / 手羽元',
-                category: 'meat',
-                icon: 'fa-drumstick-bite',
-                iconColor: 'text-rose-400',
-                temp: 195, time: [12, 16],
-                flipTime: '10分経過時に裏返す',
-                tips: '皮の脂分がほどよく落ちてパリッと焼き上がります。塩コショウや甘辛タレがよく合います。',
-                tags: ['てばさき', '手羽元', 'おつまみ']
-            },
-            {
-                id: 'meat-porkbelly',
-                name: '豚バラカリカリ焼き / サムギョプサル',
-                category: 'meat',
-                icon: 'fa-bacon',
-                iconColor: 'text-rose-400',
-                temp: 195, time: [8, 11],
-                flipTime: '半分（約5分）経過でひっくり返す',
-                tips: '余分な脂が底にドリップしてとてもヘルシー。カリカリ食感が好きなら200℃で＋2分追加！',
-                tags: ['豚バラ', '豚肉', 'サムギョプサル']
-            },
-            {
-                id: 'meat-tonkatsu',
-                name: '生豚カツ (衣付き)',
-                category: 'meat',
-                icon: 'fa-cubes-stacked',
-                iconColor: 'text-rose-400',
-                temp: 190, time: [10, 13],
-                flipTime: '7分前後にひっくり返す',
-                tips: 'パン粉の表面にオイルスプレーを均一にかけるのがコツ！粉っぽさが消えてお店のサクサク感になります。',
-                tags: ['とんかつ', '豚カツ', 'フライ']
-            },
-            {
-                id: 'meat-menchi',
-                name: 'メンチカツ (生の衣付き)',
-                category: 'meat',
-                icon: 'fa-circle-dot',
-                iconColor: 'text-rose-400',
-                temp: 190, time: [12, 15],
-                flipTime: '約8分経過で裏返す',
-                tips: '衣表面全体に少量のオイルスプレーを吹きかけると、ジューシーでサクサクに出来上がります。',
-                tags: ['メンチカツ', 'ひき肉', '揚物']
-            },
-            {
-                id: 'meat-hamburg',
-                name: '自家製ハンバーグ',
-                category: 'meat',
-                icon: 'fa-circle-dot',
-                iconColor: 'text-rose-400',
-                temp: 180, time: [10, 13],
-                flipTime: '7分経過でひっくり返す',
-                tips: '中央をくぼませてセット。肉汁を閉じ込めるため途中で余分な肉汁が出てもあせらず加熱します。',
-                tags: ['ハンバーグ', 'ひき肉', '洋食']
-            },
-            {
-                id: 'meat-roastbeef',
-                name: 'ローストビーフ (ブロック)',
-                category: 'meat',
-                icon: 'fa-bacon',
-                iconColor: 'text-rose-400',
-                temp: 190, time: [12, 16],
-                flipTime: '半分経過で1度ひっくり返す',
-                tips: '加熱後、アルミホイルに包んで20分放置し予熱で通すと絶品ミディアムレアになります。',
-                tags: ['ローストビーフ', '牛肉', 'ごちそう']
-            },
-
-            // Seafood
-            {
-                id: 'fish-salmon',
-                name: '鮭の切り身 (塩焼き)',
-                category: 'seafood',
-                icon: 'fa-fish',
-                iconColor: 'text-sky-400',
-                temp: 190, time: [7, 9],
-                flipTime: '裏返し不要（皮目を上にしてセット）',
-                tips: 'クッキングシートを敷いて皮目を上にして焼くと、パリッとした皮とフワッとした身になります。',
-                tags: ['さけ', '鮭', '魚', '焼き魚']
-            },
-            {
-                id: 'fish-mackerel',
-                name: 'サバの塩焼き / 文化干し',
-                category: 'seafood',
-                icon: 'fa-fish',
-                iconColor: 'text-sky-400',
-                temp: 190, time: [8, 10],
-                flipTime: '皮目を上にして最後まで加熱',
-                tips: 'サバの自前の脂で揚げるように香ばしく焼けます。クッキングシートがあると後片付けが楽です。',
-                tags: ['サバ', '鯖', '魚類']
-            },
-            {
-                id: 'fish-shrimp',
-                name: 'エビのガーリック焼き / エビフライ',
-                category: 'seafood',
-                icon: 'fa-shrimp',
-                iconColor: 'text-sky-400',
-                temp: 190, time: [6, 8],
-                flipTime: '残り3〜4分で一度返す',
-                tips: '殻付き海老はガーリックオイルを絡めると絶品。殻ごとパリパリ食べられます。',
-                tags: ['えび', 'エビ', '海老', 'シーフード']
-            },
-
-            // Veggies & Beans
-            {
-                id: 'veg-fries',
-                name: '自家製フライドポテト',
-                category: 'veggie',
-                icon: 'fa-vial',
-                iconColor: 'text-emerald-400',
-                temp: 195, time: [12, 16],
-                flipTime: '5分ごとにバスケットをシャッフル',
-                tips: 'カット後に水にさらし、水分をよく拭き取ってから小さじ1の油を全体に絡めて焼くのがベスト！',
-                tags: ['ポテト', 'じゃがいも', 'フライドポテト']
-            },
-            {
-                id: 'veg-sweetpotato',
-                name: 'ねっとり焼き芋 (中サイズ)',
+                id: 'rec200-eggplant-fried',
+                name: 'ナスの素揚げ風 (揚げ浸し用)',
                 category: 'veggie',
                 icon: 'fa-carrot',
                 iconColor: 'text-emerald-400',
-                temp: 170, time: [30, 40],
-                flipTime: '20分経過時にひっくり返す',
-                tips: '低温で時間をかけて加熱すると糖度がアップ！竹串がスッと刺されば出来上がり。',
-                tags: ['やきいも', '焼き芋', 'さつまいも', 'スイーツ']
+                temp: 200, time: [10, 10],
+                flipTime: '5分経過時に軽くバスケットを振る',
+                tips: '【200℃レシピ】乱切りにしたナスにポリ袋でオイルスプレーを全体になじませて200℃で10分。熱々のままめんつゆに浸せば油分カットのヘルシー揚げ浸しが完成。',
+                tags: ['ナス', 'なす', '揚げ浸し', '素揚げ', '野菜', '200℃'],
+                isVesync: true
             },
             {
-                id: 'veg-atsuage',
-                name: '厚揚げのカリカリ焼き',
-                category: 'veggie',
-                icon: 'fa-cubes',
-                iconColor: 'text-emerald-400',
-                temp: 195, time: [6, 9],
-                flipTime: '半分経過時にひっくり返す',
-                tips: '表面の油分だけで驚くほど外がカリッと中は熱々モチモチになります。生姜醤油やポン酢で！',
-                tags: ['あつあげ', '厚揚げ', '豆腐', 'おつまみ']
+                id: 'rec200-tonkatsu',
+                name: 'ヘルシーサクサクとんかつ',
+                category: 'meat',
+                icon: 'fa-bacon',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [10, 12],
+                flipTime: '6分経過時にひっくり返す',
+                tips: '【200℃レシピ】衣をつけた豚ロース肉をあらかじめ200℃に予熱したバスケットへ。表面に軽くオイルスプレーをすると油で揚げたようなサクサク食感に。',
+                tags: ['とんかつ', '豚カツ', '豚肉', '揚物', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-salmon-herbs',
+                name: 'サーモンの香草パン粉焼き',
+                category: 'seafood',
+                icon: 'fa-fish',
+                iconColor: 'text-sky-400',
+                temp: 200, time: [10, 12],
+                flipTime: '裏返し不要',
+                tips: '【200℃レシピ】生サーモンに粉チーズ・ハーブ・パン粉・オリーブオイルをのせて焼き上げます。身はふっくら、表面のパン粉が香ばしく仕上がります。',
+                tags: ['サーモン', '鮭', '香草パン粉', '魚', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-froz-takoyaki',
+                name: '冷凍たこ焼き (カリとろ揚げたこ風)',
+                category: 'frozen',
+                icon: 'fa-snowflake',
+                iconColor: 'text-cyan-300',
+                temp: 200, time: [10, 14],
+                flipTime: '裏返し不要（途中で軽く振動を与えてもOK）',
+                tips: '【200℃レシピ】凍ったままのたこ焼きにごま油（またはオイルスプレー）を絡めて200℃で10〜14分。レンジとは一味違う外カリ・中とろの屋台風仕上がり！',
+                tags: ['たこ焼き', '冷凍食品', '揚げたこ焼き', 'おやつ', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-froz-kaki-fry',
+                name: '冷凍カキフライ・アジフライ',
+                category: 'frozen',
+                icon: 'fa-snowflake',
+                iconColor: 'text-cyan-300',
+                temp: 200, time: [10, 12],
+                flipTime: '5〜6分経過時にひっくり返す',
+                tips: '【200℃レシピ】凍ったまま並べ、スプレー油を全体に吹きかけて200℃で一気に焼き上げます。油跳ね・ニオイ残りがなくサクッとジューシーに。',
+                tags: ['カキフライ', 'アジフライ', '冷凍食品', 'フライ', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-enoki-pork-wrap',
+                name: '豚バラえのき巻き (甘辛仕上げ)',
+                category: 'meat',
+                icon: 'fa-bacon',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [10, 12],
+                flipTime: '巻き終わりを下にセット（裏返し不要）',
+                tips: '【200℃レシピ】えのきを豚バラ肉で巻き、200℃で10分焼いてから甘辛ダレ（醤油・砂糖・酒）を絡めます。えのきのコリコリ感と脂の旨味が最高です。',
+                tags: ['えのき肉巻き', '豚バラ巻き', '肉巻き', '豚肉', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-roast-beef',
+                name: '特製ローストビーフ (表面焼き固め)',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [8, 10],
+                flipTime: '4分経過時にひっくり返す',
+                tips: '【200℃レシピ】塩胡椒・ニンニクを揉み込んだ牛かたまり肉を200℃で8〜10分加熱し表面を焼き固めた後、アルミホイルに包んで15分余熱保温でジューシーに！',
+                tags: ['ローストビーフ', '牛肉', 'かたまり肉', 'ごちそう', '200℃'],
+                isVesync: true
             },
 
-            // Frozen Foods
+            // 既存の 200℃ レシピ
+            {
+                id: 'rec200-teriyaki-chicken',
+                name: '鶏の照り焼き',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [15, 18],
+                flipTime: '10分経過時にひっくり返しタレを塗る',
+                tips: '【200℃レシピ】醤油・みりん・酒・砂糖に漬け込み、皮目を上にしてセット。10分経過後に裏返して残りのタレを絡めると照り良くジューシーに仕上がります。',
+                tags: ['鶏の照り焼き', '照り焼き', '鶏肉', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-garlic-shrimp',
+                name: 'ガーリックシュリンプ',
+                category: 'seafood',
+                icon: 'fa-shrimp',
+                iconColor: 'text-sky-400',
+                temp: 200, time: [8, 10],
+                flipTime: '4〜5分経過時に軽くシェイク',
+                tips: '【200℃レシピ】殻つき（またはむき身）の海老をニンニク・オリーブオイル・塩コショウで和えてバスケットへ。プリプリで香ばしく仕上がります。',
+                tags: ['ガーリックシュリンプ', 'エビ', '海老', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-pork-steak',
+                name: 'ポークソテー (豚ロースステーキ)',
+                category: 'meat',
+                icon: 'fa-bacon',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [12, 15],
+                flipTime: '7分経過時にひっくり返す',
+                tips: '【200℃レシピ】筋切りをして塩胡椒。高温短時間で焼き上げることで、余分な脂を落としつつ表面は香ばしく中はふっくら焼き上がります。',
+                tags: ['ポークソテー', '豚ロース', 'ステーキ', '豚肉', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-aspara-bacon',
+                name: 'アスパラベーコン巻き',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [8, 10],
+                flipTime: '巻き終わりを下に並べる (裏返し不要)',
+                tips: '【200℃レシピ】アスパラにベーコンを巻き、巻き終わりを下にして敷き詰めます。ベーコンの脂がアスパラに染み込み甘みが引き立ちます。',
+                tags: ['アスパラベーコン', 'ベーコン巻き', '肉巻き', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-fried-chicken',
+                name: 'クリスピーフライドチキン',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [18, 20],
+                flipTime: '10分経過時に裏返す',
+                tips: '【200℃レシピ】スパイスを効かせた衣をつけ、仕上げにオイルスプレーをサッと吹いて200℃で調理。お店のようなザクザク感に仕上がります。',
+                tags: ['フライドチキン', 'クリスピーチキン', '鶏肉', '揚物', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-grilled-squid',
+                name: 'イカの香ばし姿焼き',
+                category: 'seafood',
+                icon: 'fa-fish',
+                iconColor: 'text-sky-400',
+                temp: 200, time: [8, 10],
+                flipTime: '5分経過時に裏返す',
+                tips: '【200℃レシピ】イカに格子状の切れ目を入れ、醤油ダレにサッと浸して焼きます。200℃の高温で身が縮まず柔らかく香ばしく焼き上がります。',
+                tags: ['イカ焼き', '姿焼き', 'おつまみ', '魚介', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-mini-pizza',
+                name: '冷凍・市販ミニピザ',
+                category: 'reheat',
+                icon: 'fa-pizza-slice',
+                iconColor: 'text-orange-400',
+                temp: 200, time: [6, 8],
+                flipTime: '裏返し不要',
+                tips: '【200℃レシピ】解凍不要でそのままバスケットへ。高火力で底面がサクサクになり、上のチーズがとろ〜り香ばしく焼き上がります。',
+                tags: ['ピザ', '冷凍ピザ', '軽食', 'パン', '200℃'],
+                isVesync: true
+            },
+            {
+                id: 'rec200-hash-browns',
+                name: '冷凍ハッシュドポテト',
+                category: 'frozen',
+                icon: 'fa-snowflake',
+                iconColor: 'text-cyan-300',
+                temp: 200, time: [10, 12],
+                flipTime: '6分経過時に裏返す',
+                tips: '【200℃レシピ】凍ったまま200℃で両面を加熱。追い油なしでも表面カリカリ、中はハッシュドポテト特有のホクホク食感を楽しめます。',
+                tags: ['ハッシュドポテト', 'ハッシュポテト', '冷凍食品', 'ポテト', '200℃'],
+                isVesync: true
+            },
+
+            // VeSync COSORI 公式ブログ レシピ
+            {
+                id: 'vesync-sanzokuyaki',
+                name: '山賊焼き (長野風から揚げ)',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [15, 18],
+                flipTime: '調理10分経過時にひっくり返す',
+                tips: '【VeSync公式】ニンニクと醤油に漬け込んだ大ぶり鶏もも肉に片栗粉をまぶし、少量の油を塗ってカリッと香ばしく焼き上げます。',
+                tags: ['山賊焼き', '鶏肉', 'から揚げ', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-tebasaik-negima',
+                name: '手羽先のねぎま串',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 190, time: [12, 15],
+                flipTime: '7分経過時にひっくり返す',
+                tips: '【VeSync公式】手羽先の骨を抜きネギを挟んだ香ばしい串焼き。仕上げに塩コショウまたは甘辛ダレを絡めます。',
+                tags: ['手羽先', 'ねぎま', '焼き鳥', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-samgyeopsal',
+                name: 'サムギョプサルとほくほくポテト',
+                category: 'meat',
+                icon: 'fa-bacon',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [15, 20],
+                flipTime: '10分経過時にひっくり返しシェイク',
+                tips: '【VeSync公式】厚切り豚バラ肉の脂分がポテトに染み込み、外カリカリ中ホクホクに仕上がります。サンチュと味噌で召し上がれ。',
+                tags: ['サムギョプサル', '豚バラ', 'ポテト', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-harumaki-korokke',
+                name: '春巻きコロッケ',
+                category: 'meat',
+                icon: 'fa-cubes',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [10, 10],
+                flipTime: '裏返し不要（軽くオイルスプレー）',
+                tips: '【VeSync公式】春巻きの皮でコロッケの具を包んでフライヤーへ！面倒な衣付けや揚げ油不要でパリパリサクサク食感に。',
+                tags: ['春巻き', 'コロッケ', '揚物', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-ebi-pari-fry',
+                name: 'エビパリフライ',
+                category: 'seafood',
+                icon: 'fa-shrimp',
+                iconColor: 'text-sky-400',
+                temp: 190, time: [10, 12],
+                flipTime: '5分経過時に裏返す',
+                tips: '【VeSync公式】海老をライスペーパーや餃子の皮で包んで揚げ焼き風に。外はパリパリ、海老はプリプリの食感が絶品。',
+                tags: ['エビ', '海老', 'エビフライ', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-ribbon-gyoza',
+                name: 'パリとろリボン餃子',
+                category: 'seafood',
+                icon: 'fa-circle-dot',
+                iconColor: 'text-sky-400',
+                temp: 190, time: [8, 10],
+                flipTime: '途中一度ひっくり返す',
+                tips: '【VeSync公式】リボン状に可愛く包んだスナック感覚の餃子。一口サイズでお酒のおつまみやお弁当のおかずにもおすすめ。',
+                tags: ['餃子', 'ぎょうざ', 'おつまみ', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-cheese-senbei',
+                name: 'チーズせんべい',
+                category: 'reheat',
+                icon: 'fa-cheese',
+                iconColor: 'text-amber-300',
+                temp: 180, time: [4, 4],
+                flipTime: '裏返し不要',
+                tips: '【VeSync公式】クッキングシートにピザ用チーズを丸く広げてたった4分加熱！カリカリパリパリの絶品チーズおつまみ。',
+                tags: ['チーズ', 'おつまみ', 'スナック', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-jabara-potato',
+                name: 'のり塩蛇腹ポテト',
+                category: 'veggie',
+                icon: 'fa-vial',
+                iconColor: 'text-emerald-400',
+                temp: 195, time: [15, 20],
+                flipTime: '10分経過時に裏返す',
+                tips: '【VeSync公式】じゃがいもに細かく切り込みを入れて蛇腹状にし、オリーブオイルと青のり塩でクリスピーに焼き上げます。',
+                tags: ['じゃがいも', 'ポテト', 'のり塩', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-stuffed-mushroom',
+                name: 'スタッフドマッシュルーム',
+                category: 'veggie',
+                icon: 'fa-vial',
+                iconColor: 'text-emerald-400',
+                temp: 180, time: [10, 12],
+                flipTime: '裏返し不要',
+                tips: '【VeSync公式】マッシュルームの傘にひき肉やチーズ、パン粉を詰めてグリル。ジュワッと旨味が溢れるオードブル。',
+                tags: ['マッシュルーム', 'きのこ', 'おつまみ', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-gratan',
+                name: 'アスパラベーコンのポテトグラタン',
+                category: 'veggie',
+                icon: 'fa-fire-burner',
+                iconColor: 'text-emerald-400',
+                temp: 180, time: [5, 6],
+                flipTime: '裏返し不要（チーズが溶けるまで）',
+                tips: '【VeSync公式】下茹でしたポテトと炒めた具材、ホワイトソースの上にチーズを乗せ、こんがり焼き目がつくまでグリル。',
+                tags: ['グラタン', 'アスパラ', 'ポテト', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-pondequejo',
+                name: 'もちもちポンデケージョ',
+                category: 'sweets',
+                icon: 'fa-cookie-bite',
+                iconColor: 'text-pink-400',
+                temp: 160, time: [15, 15],
+                flipTime: '裏返し不要',
+                tips: '【VeSync公式】豆腐・片栗粉・粉チーズで手軽に作るグルテンフリーのおやつ！160℃でふんわりモッチリ焼けます。',
+                tags: ['ポンデケージョ', 'チーズパン', 'おやつ', 'VeSync公式'],
+                isVesync: true
+            },
+            {
+                id: 'vesync-carrot-cake',
+                name: 'にんじんたっぷりキャロットケーキ',
+                category: 'sweets',
+                icon: 'fa-cookie-bite',
+                iconColor: 'text-pink-400',
+                temp: 160, time: [25, 25],
+                flipTime: '裏返し不要',
+                tips: '【VeSync公式】すりおろした人参と米粉で作るヘルシースイーツ。160℃ベイク機能でしっとり優しく焼き上がります。',
+                tags: ['キャロットケーキ', '米粉スイーツ', 'おやつ', 'VeSync公式'],
+                isVesync: true
+            },
+
+            // トイロ家流 早見表 レシピ
+            {
+                id: 'toiro-toast',
+                name: 'トースト',
+                category: 'reheat',
+                icon: 'fa-bread-slice',
+                iconColor: 'text-amber-400',
+                temp: 220, time: [4, 4],
+                flipTime: 'ひっくり返し不要',
+                tips: '【トイロ家流】予熱なしでそのままバスケットにセットして加熱します。外サク中モチに！',
+                tags: ['トースト', '食パン', '朝ごはん', 'パン'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-medama',
+                name: '目玉焼き',
+                category: 'reheat',
+                icon: 'fa-egg',
+                iconColor: 'text-amber-300',
+                temp: 230, time: [5, 6],
+                flipTime: 'ひっくり返し不要',
+                tips: '【トイロ家流】耐熱プレート（ココット等）に卵をのせて焼いてください。',
+                tags: ['目玉焼き', '卵', '朝ごはん'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-pizza-toast',
+                name: 'ピザトースト',
+                category: 'reheat',
+                icon: 'fa-pizza-slice',
+                iconColor: 'text-orange-400',
+                temp: 230, time: [4, 5],
+                flipTime: 'ひっくり返し不要',
+                tips: '【トイロ家流】トマトソース → チーズ → 具材の順にのせて焼き上げます。',
+                tags: ['ピザトースト', '食パン', 'ピザ', '朝ごはん'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-tebasaki',
+                name: '手羽先',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [13, 15],
+                flipTime: '途中で一度裏返す',
+                tips: '【トイロ家流】両面にスパイスソルトを振る / 予熱なし。皮がパリッとジューシーに仕上がります。',
+                tags: ['手羽先', '鶏肉', 'スパイス', '肉'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-chicken-steak',
+                name: 'チキンステーキ (鶏もも)',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [15, 18],
+                flipTime: '裏返し不要',
+                tips: '【トイロ家流】皮目を上にしてセット / 予熱なし・裏返し不要。皮目がパリッと焼き上がります。',
+                tags: ['チキンステーキ', '鶏もも', 'もも肉', 'ステーキ'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-hamburg-140',
+                name: 'ハンバーグ (140g)',
+                category: 'meat',
+                icon: 'fa-circle-dot',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [15, 15],
+                flipTime: '約7〜8分経過時に裏返す',
+                tips: '【トイロ家流】事前にしっかり予熱あり。肉汁が閉じ込められてふっくら仕上がります。',
+                tags: ['ハンバーグ', 'ひき肉', '洋食'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-hamburg-mini',
+                name: 'ミニハンバーグ (70〜80g)',
+                category: 'meat',
+                icon: 'fa-circle-dot',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [12, 12],
+                flipTime: '約6分経過時に裏返す',
+                tips: '【トイロ家流】事前にしっかり予熱あり。お弁当や朝食のおかずにも最適。',
+                tags: ['ミニハンバーグ', 'ハンバーグ', 'お弁当'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-karaage',
+                name: 'から揚げ',
+                category: 'meat',
+                icon: 'fa-drumstick-bite',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [18, 20],
+                flipTime: '途中で一度裏返し、シェイクする',
+                tips: '【トイロ家流】一口大に切って下味 → 片栗粉をまぶす / 予熱あり。途中で一度裏返しシェイクします。',
+                tags: ['から揚げ', '唐揚げ', '鶏肉', '揚物'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-nikumaki',
+                name: '野菜の肉巻き (ズッキーニ)',
+                category: 'meat',
+                icon: 'fa-bacon',
+                iconColor: 'text-rose-400',
+                temp: 200, time: [10, 10],
+                flipTime: '巻き終わりを下に並べる（裏返し不要）',
+                tips: '【トイロ家流】巻き終わりを下にして並べます。ズッキーニ等の野菜が甘く仕上がります。',
+                tags: ['肉巻き', 'ズッキーニ', '野菜巻き', '豚肉'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-yaginasu',
+                name: '焼きナス',
+                category: 'veggie',
+                icon: 'fa-carrot',
+                iconColor: 'text-emerald-400',
+                temp: 200, time: [15, 15],
+                flipTime: '途中でシェイクして裏返す',
+                tips: '【トイロ家流】ヘタの周りに一周切り込み、縦に数本筋を入れる / 予熱なし。皮がスルッと剥けます。',
+                tags: ['焼きナス', 'ナス', 'なす', '野菜'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-shiosaba',
+                name: '塩サバ (フィレ・半身)',
+                category: 'seafood',
+                icon: 'fa-fish',
+                iconColor: 'text-sky-400',
+                temp: 200, time: [10, 10],
+                flipTime: '裏返し不要（皮目を上にする）',
+                tips: '【トイロ家流】予熱なし。サバの自然な脂でふっくらジューシーに焼き上がります。',
+                tags: ['塩サバ', 'サバ', '魚', '塩焼き'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-burikama',
+                name: 'ブリカマの塩焼き (150g前後)',
+                category: 'seafood',
+                icon: 'fa-fish-fins',
+                iconColor: 'text-sky-400',
+                temp: 200, time: [13, 13],
+                flipTime: '皮目を上にして10分 → 裏返して3分',
+                tips: '【トイロ家流】塩をして10〜15分置き、水分を拭く / 予熱あり。皮目を上にして10分焼いてから裏返してさらに3分加熱！',
+                tags: ['ブリカマ', 'ブリ', '塩焼き', '魚料理'],
+                isToiro: true
+            },
+            {
+                id: 'toiro-yakiimo',
+                name: '焼き芋',
+                category: 'veggie',
+                icon: 'fa-carrot',
+                iconColor: 'text-amber-400',
+                temp: 160, time: [60, 60],
+                flipTime: '30分経過時にひっくり返す',
+                tips: '【トイロ家流】160℃で60分焼き上げたあと、庫内でそのまま20分置くと驚くほど甘くねっとり仕上がります。',
+                tags: ['焼き芋', 'さつまいも', 'スイーツ', 'ねっとり'],
+                isToiro: true
+            },
+
+            // 冷凍食品等
             {
                 id: 'froz-frenchfries',
                 name: '冷凍フライドポテト',
@@ -601,43 +987,6 @@
                 flipTime: '半分（約5分）経過でひっくり返す',
                 tips: '軽くオイルスプレーを振ってセットするとカリッカリの揚餃子風になります！',
                 tags: ['ギョーザ', '餃子', '冷凍']
-            },
-
-            // Reheat & Bakery
-            {
-                id: 'reheat-tempura',
-                name: '惣菜の天ぷら / 揚げ物温め',
-                category: 'reheat',
-                icon: 'fa-fire-burner',
-                iconColor: 'text-amber-400',
-                temp: 170, time: [3, 4],
-                flipTime: 'ひっくり返し不要',
-                tips: '余分な油が底に落ち、揚げたてのカリカリ感が完全に復活します！焦げ防止に170℃前後で。',
-                tags: ['温め直し', '天ぷら', 'コロッケ', '惣菜']
-            },
-            {
-                id: 'reheat-currypan',
-                name: '市販のカレーパン復元',
-                category: 'reheat',
-                icon: 'fa-bread-slice',
-                iconColor: 'text-amber-400',
-                temp: 165, time: [2, 4],
-                flipTime: 'ひっくり返し不要',
-                tips: 'パン屋・コンビニのカレーパンが見違えるほどクランチーになり中のルーもトロ熱に。',
-                tags: ['パン', 'カレーパン', 'サクサク']
-            },
-
-            // Sweets
-            {
-                id: 'sweet-cheesecake',
-                name: 'ミニバスクチーズケーキ',
-                category: 'sweets',
-                icon: 'fa-cheese',
-                iconColor: 'text-pink-400',
-                temp: 190, time: [10, 14],
-                flipTime: '裏返し不要',
-                tips: 'ココットや耐熱容器にクッキングシートを敷き生地を流し込んで焼くだけ！お店の焼き目が再現できます。',
-                tags: ['スイーツ', 'チーズケーキ', 'バスク']
             }
         ];
 
@@ -666,7 +1015,7 @@
 
         // Load custom database from localStorage or initialize default
         function loadSavedDatabase() {
-            const saved = localStorage.getItem('af_custom_database_cosori_v1');
+            const saved = localStorage.getItem('af_custom_database_vesync_v3');
             if (saved) {
                 try {
                     foodDatabase = JSON.parse(saved);
@@ -680,11 +1029,11 @@
         }
 
         function saveDatabaseToStorage() {
-            localStorage.setItem('af_custom_database_cosori_v1', JSON.stringify(foodDatabase));
+            localStorage.setItem('af_custom_database_vesync_v3', JSON.stringify(foodDatabase));
         }
 
         function resetDataToDefault() {
-            if (confirm('登録・編集した全メニューを初期状態（COSORIデフォルト）に戻しますか？')) {
+            if (confirm('登録・編集した全メニューを初期状態（追加の200℃レシピ含む）に戻しますか？')) {
                 foodDatabase = [...masterFoodDatabase];
                 saveDatabaseToStorage();
                 showToast('メニューを初期状態にリセットしました');
@@ -781,16 +1130,22 @@
 
             filtered.forEach(item => {
                 const isFav = favorites.includes(item.id);
-                const temp = item.temp || (item.tempCosori ? item.tempCosori : 190);
-                const timeRange = item.time || (item.timeCosori ? item.timeCosori : [10, 13]);
+                const temp = item.temp;
+                const timeRange = item.time;
 
                 const card = document.createElement('div');
                 card.className = 'bg-slate-800/80 border border-slate-700/80 hover:border-orange-500/50 rounded-2xl p-4 transition-all duration-200 hover:shadow-xl hover:shadow-orange-500/5 flex flex-col justify-between space-y-3 group relative';
 
-                const aiBadgeHtml = item.isAiGenerated ? 
-                    `<span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.2 rounded" title="AIがWebから取得したメニュー">
-                        <i class="fa-solid fa-globe"></i> Web
-                    </span>` : '';
+                let badgeHtml = '';
+                if (item.isVesync) {
+                    badgeHtml = `<span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold" title="COSORI公式・おすすめレシピ">COSORI公式</span>`;
+                } else if (item.isToiro) {
+                    badgeHtml = `<span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.2 rounded font-bold" title="トイロ家流オリジナルレシピ">トイロ家流</span>`;
+                } else if (item.isAiGenerated) {
+                    badgeHtml = `<span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.2 rounded font-bold" title="AIがWebから取得したメニュー"><i class="fa-solid fa-globe"></i> Web</span>`;
+                }
+
+                const timeStr = timeRange[0] === timeRange[1] ? `${timeRange[0]}分` : `${timeRange[0]}〜${timeRange[1]}分`;
 
                 card.innerHTML = `
                     <div class="space-y-2">
@@ -802,7 +1157,7 @@
                                 <div>
                                     <h3 class="font-bold text-white text-sm group-hover:text-orange-400 transition-colors flex items-center gap-1.5">
                                         <span>${item.name}</span>
-                                        ${aiBadgeHtml}
+                                        ${badgeHtml}
                                     </h3>
                                     <span class="text-[10px] text-slate-400 bg-slate-900 px-2 py-0.5 rounded-md border border-slate-700/50">
                                         ${getCategoryLabel(item.category)}
@@ -835,7 +1190,7 @@
                                 <span class="text-[10px] text-slate-400 block">調理時間</span>
                                 <span class="font-extrabold text-amber-300 text-sm flex items-center gap-1">
                                     <i class="fa-solid fa-clock text-xs"></i>
-                                    ${timeRange[0]}〜${timeRange[1]}分
+                                    ${timeStr}
                                 </span>
                             </div>
                         </div>
@@ -847,7 +1202,7 @@
 
                     <div class="flex items-center gap-2 pt-1 border-t border-slate-700/40">
                         <button onclick="openDetailModal('${item.id}')" class="flex-1 py-2 bg-slate-900 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-medium border border-slate-700/80 transition-colors">
-                            プロのコツ
+                            下ごしらえ・コツ
                         </button>
                         <button onclick="startTimerForItem('${item.id}')" class="flex-1 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-300 border border-orange-500/40 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1">
                             <i class="fa-solid fa-play text-[10px]"></i>
@@ -864,11 +1219,11 @@
 
         function getCategoryLabel(cat) {
             const map = {
-                meat: '肉類',
+                reheat: '朝ごはん・軽食・パン',
+                meat: '肉のおかず',
                 seafood: '魚介類',
                 veggie: '野菜・豆',
                 frozen: '冷凍食品',
-                reheat: '温め・パン',
                 sweets: 'スイーツ'
             };
             return map[cat] || 'その他';
@@ -876,7 +1231,7 @@
 
         // Category Count Updates
         function updateCategoryCounts() {
-            const counts = { all: foodDatabase.length, meat: 0, seafood: 0, veggie: 0, frozen: 0, reheat: 0, sweets: 0 };
+            const counts = { all: foodDatabase.length, reheat: 0, meat: 0, seafood: 0, veggie: 0, frozen: 0, sweets: 0 };
             foodDatabase.forEach(item => {
                 if (counts[item.category] !== undefined) {
                     counts[item.category]++;
@@ -912,7 +1267,7 @@
             const payload = {
                 contents: [{
                     parts: [{
-                        text: `COSORIエアフライヤーで「${query}」を調理する場合の最も美味しく安全な調理設定（高火力190〜205℃中心）をウェブ検索して抽出してください。`
+                        text: `COSORIエアフライヤーで「${query}」を調理する場合の最も美味しく安全な調理設定をウェブ検索して抽出してください。`
                     }]
                 }],
                 systemInstruction: {
@@ -923,11 +1278,11 @@
 JSONフォーマット仕様:
 {
   "name": "料理名（例: 羊肉の香草焼き）",
-  "category": "meat", // "meat", "seafood", "veggie", "frozen", "reheat", "sweets" のいずれか1つ
-  "temp": 195, // COSORI向け目安温度(整数℃, 180〜205℃)
+  "category": "meat", // "reheat", "meat", "seafood", "veggie", "frozen", "sweets" のいずれか1つ
+  "temp": 200, // COSORI向け目安温度(整数℃, 160〜230℃)
   "time": [10, 13], // COSORI向け目安時間 [最短分, 最長分]
   "flipTime": "ひっくり返しやバスケットを振るタイマータイミングの日本語記述",
-  "tips": "オイルスプレーの使い方、焦げ防止、下ごしらえなどのコツ（日本語）",
+  "tips": "オイルスプレーの使い方、予熱、下ごしらえなどのコツ（日本語）",
   "tags": ["タグ1", "タグ2"]
 }`
                     }]
@@ -999,7 +1354,7 @@ JSONフォーマット仕様:
                     category: parsedData.category || 'meat',
                     icon: getCategoryIcon(parsedData.category),
                     iconColor: 'text-cyan-400',
-                    temp: parseInt(parsedData.temp) || 190,
+                    temp: parseInt(parsedData.temp) || 200,
                     time: Array.isArray(parsedData.time) ? parsedData.time : [8, 12],
                     flipTime: parsedData.flipTime || '途中で1度裏返してください',
                     tips: parsedData.tips || 'Web検索から自動抽出した調理手順です。',
@@ -1027,11 +1382,11 @@ JSONフォーマット仕様:
 
         function getCategoryIcon(cat) {
             const map = {
+                reheat: 'fa-bread-slice',
                 meat: 'fa-drumstick-bite',
                 seafood: 'fa-fish',
                 veggie: 'fa-carrot',
                 frozen: 'fa-snowflake',
-                reheat: 'fa-bread-slice',
                 sweets: 'fa-cookie-bite'
             };
             return map[cat] || 'fa-utensils';
@@ -1042,22 +1397,34 @@ JSONフォーマット仕様:
             const item = foodDatabase.find(f => f.id === id);
             if (!item) return;
 
-            const temp = item.temp || (item.tempCosori ? item.tempCosori : 190);
-            const timeRange = item.time || (item.timeCosori ? item.timeCosori : [10, 13]);
+            const temp = item.temp;
+            const timeRange = item.time;
+            const timeStr = timeRange[0] === timeRange[1] ? `${timeRange[0]}分` : `${timeRange[0]}〜${timeRange[1]}分`;
 
             document.getElementById('modal-title').textContent = item.name;
             document.getElementById('modal-category').textContent = getCategoryLabel(item.category);
             document.getElementById('modal-temp').textContent = `${temp}℃`;
-            document.getElementById('modal-time').textContent = `${timeRange[0]}〜${timeRange[1]}分`;
+            document.getElementById('modal-time').textContent = timeStr;
             document.getElementById('modal-flip').textContent = item.flipTime;
             document.getElementById('modal-tips').textContent = item.tips;
 
-            // AI Badge & Sources
+            // Badges
+            const vesyncBadge = document.getElementById('modal-vesync-badge');
+            const toiroBadge = document.getElementById('modal-toiro-badge');
             const aiBadge = document.getElementById('modal-ai-badge');
             const sourcesContainer = document.getElementById('modal-sources-container');
             const sourcesList = document.getElementById('modal-sources-list');
 
-            if (item.isAiGenerated) {
+            vesyncBadge.classList.add('hidden');
+            toiroBadge.classList.add('hidden');
+            aiBadge.classList.add('hidden');
+            sourcesContainer.classList.add('hidden');
+
+            if (item.isVesync) {
+                vesyncBadge.classList.remove('hidden');
+            } else if (item.isToiro) {
+                toiroBadge.classList.remove('hidden');
+            } else if (item.isAiGenerated) {
                 aiBadge.classList.remove('hidden');
                 if (item.sources && item.sources.length > 0) {
                     sourcesContainer.classList.remove('hidden');
@@ -1066,12 +1433,7 @@ JSONフォーマット仕様:
                             <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> ${s.title}
                         </a>`
                     ).join('');
-                } else {
-                    sourcesContainer.classList.add('hidden');
                 }
-            } else {
-                aiBadge.classList.add('hidden');
-                sourcesContainer.classList.add('hidden');
             }
 
             const iconEl = document.getElementById('modal-icon');
@@ -1117,12 +1479,9 @@ JSONフォーマット仕様:
                 document.getElementById('form-name').value = item.name;
                 document.getElementById('form-category').value = item.category;
                 
-                const temp = item.temp || (item.tempCosori ? item.tempCosori : 190);
-                const timeRange = item.time || (item.timeCosori ? item.timeCosori : [10, 13]);
-                
-                document.getElementById('form-temp').value = temp;
-                document.getElementById('form-min-time').value = timeRange[0];
-                document.getElementById('form-max-time').value = timeRange[1];
+                document.getElementById('form-temp').value = item.temp;
+                document.getElementById('form-min-time').value = item.time[0];
+                document.getElementById('form-max-time').value = item.time[1];
                 document.getElementById('form-flip').value = item.flipTime || '';
                 document.getElementById('form-tips').value = item.tips || '';
             } else {
@@ -1146,7 +1505,7 @@ JSONフォーマット仕様:
             const temp = parseInt(document.getElementById('form-temp').value);
             const minTime = parseInt(document.getElementById('form-min-time').value);
             const maxTime = parseInt(document.getElementById('form-max-time').value);
-            const flipTime = document.getElementById('form-flip').value || '調理時間半分で1度ひっくり返す';
+            const flipTime = document.getElementById('form-flip').value || '途中で1度ひっくり返す';
             const tips = document.getElementById('form-tips').value || '調理のコツメモです。';
 
             if (editId) {
@@ -1216,14 +1575,83 @@ JSONフォーマット仕様:
             renderFoodGrid();
         }
 
+        // Data Management Modals & Functions
+        function openDataModal() {
+            document.getElementById('data-modal').classList.remove('hidden');
+        }
+
+        function closeDataModal() {
+            document.getElementById('data-modal').classList.add('hidden');
+        }
+
+        // Copy Code Format for JS masterFoodDatabase Replacement
+        function copyMasterCodeToClipboard() {
+            const codeString = JSON.stringify(foodDatabase, null, 4);
+            // Copy execution helper using document.execCommand
+            const dummy = document.createElement('textarea');
+            dummy.value = codeString;
+            document.body.appendChild(dummy);
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+
+            showToast('ソースコード用データ（配列）をコピーしました！HTML内の masterFoodDatabase に貼り付けてください。', 'success');
+        }
+
+        function copyJsonData() {
+            const jsonString = JSON.stringify(foodDatabase, null, 2);
+            const dummy = document.createElement('textarea');
+            dummy.value = jsonString;
+            document.body.appendChild(dummy);
+            dummy.select();
+            document.execCommand('copy');
+            document.body.removeChild(dummy);
+
+            showToast('JSONデータをクリップボードにコピーしました');
+        }
+
+        function downloadJsonFile() {
+            const jsonString = JSON.stringify(foodDatabase, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `cosori_recipes_backup_${new Date().toISOString().slice(0, 10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            showToast('JSONファイルをダウンロードしました');
+        }
+
+        function importJsonData() {
+            const raw = document.getElementById('import-json-textarea').value.trim();
+            if (!raw) {
+                showToast('貼り付け欄にJSONデータを入力してください', 'warning');
+                return;
+            }
+
+            try {
+                const parsed = JSON.parse(raw);
+                if (!Array.isArray(parsed)) {
+                    throw new Error('配列形式ではありません');
+                }
+                foodDatabase = parsed;
+                saveDatabaseToStorage();
+                closeDataModal();
+                renderFoodGrid();
+                showToast('データのインポートが完了しました！', 'success');
+            } catch (e) {
+                showToast('JSONフォーマットが正しくありません: ' + e.message, 'warning');
+            }
+        }
+
         // Timer Logic & Audio Notifications
         function startTimerForItem(id) {
             const item = foodDatabase.find(f => f.id === id);
             if (!item) return;
 
             activeTimerFood = item;
-            const temp = item.temp || (item.tempCosori ? item.tempCosori : 190);
-            const timeRange = item.time || (item.timeCosori ? item.timeCosori : [10, 13]);
+            const temp = item.temp;
+            const timeRange = item.time;
             
             const avgMinutes = Math.round((timeRange[0] + timeRange[1]) / 2);
             timerTotalSeconds = avgMinutes * 60;
