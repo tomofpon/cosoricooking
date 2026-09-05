@@ -70,7 +70,7 @@
                             200℃レシピ拡充版
                         </span>
                     </h1>
-                    <p class="text-xs text-slate-400">調理温度・時間目安 ＆ AIネット検索機能</p>
+                    <p class="text-xs text-slate-400">調理温度・時間目安 ＆ タイマーガイド</p>
                 </div>
             </div>
 
@@ -100,25 +100,17 @@
 
     <main class="max-w-6xl mx-auto px-4 py-6 flex-1 w-full space-y-6">
 
-        <!-- Search & Web AI Search Controls -->
+        <!-- Search Controls -->
         <div class="flex flex-col md:flex-row gap-3 items-center justify-between">
             <!-- Search Bar -->
             <div class="relative w-full md:w-96 flex-1">
                 <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
                 <input type="text" id="search-input" placeholder="食材・料理名で検索 (例: たこ焼き, ローストビーフ, 手羽中)" 
                     oninput="handleSearch()"
-                    onkeydown="if(event.key==='Enter') executeWebSearchFromInput()"
-                    class="w-full bg-slate-800/90 border border-slate-700/80 rounded-xl pl-10 pr-28 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all">
-                <div class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                    <button id="search-clear" onclick="clearSearch()" class="hidden text-slate-400 hover:text-white p-1">
-                        <i class="fa-solid fa-xmark text-sm"></i>
-                    </button>
-                    <button id="btn-quick-web-search" onclick="executeWebSearchFromInput()" title="ネットで検索して追加" 
-                        class="px-2.5 py-1 bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shadow-md">
-                        <i class="fa-solid fa-globe"></i>
-                        <span class="hidden sm:inline">ネット検索</span>
-                    </button>
-                </div>
+                    class="w-full bg-slate-800/90 border border-slate-700/80 rounded-xl pl-10 pr-10 py-2.5 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500 transition-all">
+                <button id="search-clear" onclick="clearSearch()" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
             </div>
 
             <!-- Mobile Favorite Toggle -->
@@ -160,21 +152,21 @@
             <!-- Cards populated dynamically via JS -->
         </div>
 
-        <!-- Empty State with Web Search Call-to-Action -->
+        <!-- Empty State -->
         <div id="empty-state" class="hidden py-12 px-4 text-center space-y-4 bg-slate-800/40 border border-slate-800 rounded-2xl">
             <div class="text-4xl text-slate-500"><i class="fa-solid fa-magnifying-glass-location"></i></div>
             <div class="space-y-1">
-                <p class="text-slate-300 font-bold text-base">登録されているメニューに見つかりませんでした</p>
-                <p class="text-slate-400 text-xs">「<span id="missing-query-text" class="text-orange-400 font-semibold"></span>」の調理設定をネットで検索しますか？</p>
+                <p class="text-slate-300 font-bold text-base">該当するメニューが見つかりませんでした</p>
+                <p class="text-slate-400 text-xs">検索条件を変更するか、手動で新規メニューを追加できます。</p>
             </div>
 
             <div class="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                <button id="btn-empty-web-search" onclick="executeWebSearchFromInput()" 
-                    class="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-cyan-500/20 flex items-center justify-center gap-2 transition-all">
-                    <i class="fa-solid fa-globe"></i>
-                    <span>「<span id="btn-missing-query-label"></span>」をネット検索して追加</span>
+                <button onclick="openFormModal()" 
+                    class="w-full sm:w-auto px-6 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-bold rounded-xl shadow-lg shadow-orange-500/20 flex items-center justify-center gap-2 transition-all">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>手動で新規メニューを追加</span>
                 </button>
-                <button onclick="resetFilters()" class="w-full sm:w-auto px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 rounded-xl text-xs transition-colors">
+                <button onclick="resetFilters()" class="w-full sm:w-auto px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-400 border border-slate-700 rounded-xl text-xs transition-colors">
                     フィルターをクリア
                 </button>
             </div>
@@ -215,22 +207,6 @@
         </div>
     </div>
 
-    <!-- AI Searching Loading Modal -->
-    <div id="ai-loading-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden flex items-center justify-center p-4">
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-sm w-full p-6 text-center space-y-4 shadow-2xl">
-            <div class="w-16 h-16 rounded-full bg-cyan-500/20 border border-cyan-500/40 text-cyan-400 flex items-center justify-center text-3xl mx-auto animate-spin">
-                <i class="fa-solid fa-compass"></i>
-            </div>
-            <div class="space-y-1">
-                <h3 class="text-base font-bold text-white">ネット検索で調理データ取得中</h3>
-                <p id="ai-loading-target" class="text-xs text-cyan-300 font-medium">「〇〇」の温度・時間を調査中...</p>
-            </div>
-            <p class="text-[11px] text-slate-400 leading-relaxed bg-slate-900/60 p-2.5 rounded-xl border border-slate-800">
-                Web上の最新レシピやCOSORI公式目安データを自動検索してまとめます。
-            </p>
-        </div>
-    </div>
-
     <!-- Food Detail / Tips Modal -->
     <div id="detail-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="bg-slate-800 border border-slate-700 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-5 text-slate-100">
@@ -250,9 +226,6 @@
                         </span>
                         <span id="modal-toiro-badge" class="hidden text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold px-2 py-0.5 rounded-full">
                             トイロ家流
-                        </span>
-                        <span id="modal-ai-badge" class="hidden text-[10px] bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-bold px-2 py-0.5 rounded-full">
-                            <i class="fa-solid fa-globe"></i> Web検索取得
                         </span>
                     </div>
                     <span id="modal-category" class="text-xs text-slate-400">カテゴリ</span>
@@ -282,12 +255,6 @@
                 <p id="modal-tips" class="text-xs text-slate-300 leading-relaxed bg-slate-900/40 p-3 rounded-xl border border-slate-800 whitespace-pre-line">
                     ここにコツが表示されます。
                 </p>
-            </div>
-
-            <!-- Grounding Sources (if AI searched) -->
-            <div id="modal-sources-container" class="hidden space-y-1 border-t border-slate-800 pt-3">
-                <span class="text-[10px] text-slate-400 block"><i class="fa-solid fa-link mr-1"></i>参照Web情報源:</span>
-                <div id="modal-sources-list" class="flex flex-wrap gap-2 text-[10px]"></div>
             </div>
 
             <!-- Modal Action Buttons -->
@@ -463,9 +430,8 @@
     </div>
 
     <script>
-        // Master Database (VeSync COSORI Official Blog Recipes + 200℃ Excel Added Recipes + Toiro Chart)
+        // Master Database
         const masterFoodDatabase = [
-            // NEW ADDITIONS: Additional 200℃ Recipe Sheet 3 Menu Items
             {
                 id: 'rec200-tebanaka-salt',
                 name: '手羽中のカリカリ塩焼き',
@@ -562,8 +528,6 @@
                 tags: ['ローストビーフ', '牛肉', 'かたまり肉', 'ごちそう', '200℃'],
                 isVesync: true
             },
-
-            // 既存の 200℃ レシピ
             {
                 id: 'rec200-teriyaki-chicken',
                 name: '鶏の照り焼き',
@@ -660,8 +624,6 @@
                 tags: ['ハッシュドポテト', 'ハッシュポテト', '冷凍食品', 'ポテト', '200℃'],
                 isVesync: true
             },
-
-            // VeSync COSORI 公式ブログ レシピ
             {
                 id: 'vesync-sanzokuyaki',
                 name: '山賊焼き (長野風から揚げ)',
@@ -806,8 +768,6 @@
                 tags: ['キャロットケーキ', '米粉スイーツ', 'おやつ', 'VeSync公式'],
                 isVesync: true
             },
-
-            // トイロ家流 早見表 レシピ
             {
                 id: 'toiro-toast',
                 name: 'トースト',
@@ -964,8 +924,6 @@
                 tags: ['焼き芋', 'さつまいも', 'スイーツ', 'ねっとり'],
                 isToiro: true
             },
-
-            // 冷凍食品等
             {
                 id: 'froz-frenchfries',
                 name: '冷凍フライドポテト',
@@ -1033,7 +991,7 @@
         }
 
         function resetDataToDefault() {
-            if (confirm('登録・編集した全メニューを初期状態（追加の200℃レシピ含む）に戻しますか？')) {
+            if (confirm('登録・編集した全メニューを初期状態に戻しますか？')) {
                 foodDatabase = [...masterFoodDatabase];
                 saveDatabaseToStorage();
                 showToast('メニューを初期状態にリセットしました');
@@ -1120,9 +1078,6 @@
 
             if (filtered.length === 0) {
                 emptyState.classList.remove('hidden');
-                const rawQuery = document.getElementById('search-input').value.trim() || '検索ワード';
-                document.getElementById('missing-query-text').textContent = rawQuery;
-                document.getElementById('btn-missing-query-label').textContent = rawQuery;
                 return;
             } else {
                 emptyState.classList.add('hidden');
@@ -1141,8 +1096,6 @@
                     badgeHtml = `<span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.2 rounded font-bold" title="COSORI公式・おすすめレシピ">COSORI公式</span>`;
                 } else if (item.isToiro) {
                     badgeHtml = `<span class="text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/30 px-1.5 py-0.2 rounded font-bold" title="トイロ家流オリジナルレシピ">トイロ家流</span>`;
-                } else if (item.isAiGenerated) {
-                    badgeHtml = `<span class="text-[9px] bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 px-1.5 py-0.2 rounded font-bold" title="AIがWebから取得したメニュー"><i class="fa-solid fa-globe"></i> Web</span>`;
                 }
 
                 const timeStr = timeRange[0] === timeRange[1] ? `${timeRange[0]}分` : `${timeRange[0]}〜${timeRange[1]}分`;
@@ -1259,127 +1212,6 @@
             renderFoodGrid();
         }
 
-        // Gemini AI Web Search Logic
-        async function fetchGeminiWebSearch(query) {
-            const apiKey = ""; // Execution environment provides runtime key
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
-
-            const payload = {
-                contents: [{
-                    parts: [{
-                        text: `COSORIエアフライヤーで「${query}」を調理する場合の最も美味しく安全な調理設定をウェブ検索して抽出してください。`
-                    }]
-                }],
-                systemInstruction: {
-                    parts: [{
-                        text: `あなたはCOSORIエアフライヤー料理のプロシェフです。ウェブ検索結果を活用し、ユーザーが求めている「${query}」のCOSORIエアフライヤー調理設定（温度・時間・途中のひっくり返し方・おすすめのコツ）を生成してください。
-必ず返答は以下のキーを持つ純粋なJSON形式のみにしてください。説明テキストやコードブロック(\`\`\`json)は一切含めないでください。
-
-JSONフォーマット仕様:
-{
-  "name": "料理名（例: 羊肉の香草焼き）",
-  "category": "meat", // "reheat", "meat", "seafood", "veggie", "frozen", "sweets" のいずれか1つ
-  "temp": 200, // COSORI向け目安温度(整数℃, 160〜230℃)
-  "time": [10, 13], // COSORI向け目安時間 [最短分, 最長分]
-  "flipTime": "ひっくり返しやバスケットを振るタイマータイミングの日本語記述",
-  "tips": "オイルスプレーの使い方、予熱、下ごしらえなどのコツ（日本語）",
-  "tags": ["タグ1", "タグ2"]
-}`
-                    }]
-                },
-                tools: [{ google_search: {} }]
-            };
-
-            const delays = [1000, 2000, 4000, 8000, 16000];
-            for (let attempt = 0; attempt < 5; attempt++) {
-                try {
-                    const response = await fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-
-                    if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-                    const data = await response.json();
-                    return data;
-                } catch (err) {
-                    if (attempt === 4) throw err;
-                    await new Promise(r => setTimeout(r, delays[attempt]));
-                }
-            }
-        }
-
-        async function executeWebSearchFromInput() {
-            const query = document.getElementById('search-input').value.trim();
-            if (!query) {
-                showToast('検索したい料理名・食材名を入力してください', 'warning');
-                return;
-            }
-
-            const existing = foodDatabase.find(f => f.name.toLowerCase() === query.toLowerCase());
-            if (existing) {
-                showToast(`「${existing.name}」は既にリストに存在します`);
-                openDetailModal(existing.id);
-                return;
-            }
-
-            // Show Loading Modal
-            const loadingModal = document.getElementById('ai-loading-modal');
-            document.getElementById('ai-loading-target').textContent = `「${query}」のCOSORIレシピ設定を検索中...`;
-            loadingModal.classList.remove('hidden');
-
-            try {
-                const apiResult = await fetchGeminiWebSearch(query);
-                const candidate = apiResult.candidates?.[0];
-                const rawText = candidate?.content?.parts?.[0]?.text || '';
-
-                const attributions = candidate?.groundingMetadata?.groundingAttributions || [];
-                const sources = attributions.map(a => ({
-                    uri: a.web?.uri,
-                    title: a.web?.title || 'Web Recipe Data'
-                })).filter(s => s.uri);
-
-                let cleanJsonStr = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-                const jsonStart = cleanJsonStr.indexOf('{');
-                const jsonEnd = cleanJsonStr.lastIndexOf('}');
-                if (jsonStart !== -1 && jsonEnd !== -1) {
-                    cleanJsonStr = cleanJsonStr.substring(jsonStart, jsonEnd + 1);
-                }
-
-                const parsedData = JSON.parse(cleanJsonStr);
-
-                const newItem = {
-                    id: 'ai-' + Date.now(),
-                    name: parsedData.name || query,
-                    category: parsedData.category || 'meat',
-                    icon: getCategoryIcon(parsedData.category),
-                    iconColor: 'text-cyan-400',
-                    temp: parseInt(parsedData.temp) || 200,
-                    time: Array.isArray(parsedData.time) ? parsedData.time : [8, 12],
-                    flipTime: parsedData.flipTime || '途中で1度裏返してください',
-                    tips: parsedData.tips || 'Web検索から自動抽出した調理手順です。',
-                    tags: parsedData.tags || [query, 'AI検索'],
-                    isAiGenerated: true,
-                    sources: sources
-                };
-
-                foodDatabase.unshift(newItem);
-                saveDatabaseToStorage();
-
-                loadingModal.classList.add('hidden');
-                clearSearch();
-                showToast(`「${newItem.name}」をネットから追加しました！`, 'success');
-                renderFoodGrid();
-
-                openDetailModal(newItem.id);
-
-            } catch (error) {
-                console.error('Web Search Failed:', error);
-                loadingModal.classList.add('hidden');
-                showToast('ネット検索のデータ取得に失敗しました。手動で追加をお試しください。', 'warning');
-            }
-        }
-
         function getCategoryIcon(cat) {
             const map = {
                 reheat: 'fa-bread-slice',
@@ -1411,29 +1243,14 @@ JSONフォーマット仕様:
             // Badges
             const vesyncBadge = document.getElementById('modal-vesync-badge');
             const toiroBadge = document.getElementById('modal-toiro-badge');
-            const aiBadge = document.getElementById('modal-ai-badge');
-            const sourcesContainer = document.getElementById('modal-sources-container');
-            const sourcesList = document.getElementById('modal-sources-list');
 
             vesyncBadge.classList.add('hidden');
             toiroBadge.classList.add('hidden');
-            aiBadge.classList.add('hidden');
-            sourcesContainer.classList.add('hidden');
 
             if (item.isVesync) {
                 vesyncBadge.classList.remove('hidden');
             } else if (item.isToiro) {
                 toiroBadge.classList.remove('hidden');
-            } else if (item.isAiGenerated) {
-                aiBadge.classList.remove('hidden');
-                if (item.sources && item.sources.length > 0) {
-                    sourcesContainer.classList.remove('hidden');
-                    sourcesList.innerHTML = item.sources.slice(0, 3).map(s => 
-                        `<a href="${s.uri}" target="_blank" rel="noopener noreferrer" class="text-cyan-400 underline hover:text-cyan-300 truncate max-w-[200px]">
-                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i> ${s.title}
-                        </a>`
-                    ).join('');
-                }
             }
 
             const iconEl = document.getElementById('modal-icon');
@@ -1587,7 +1404,6 @@ JSONフォーマット仕様:
         // Copy Code Format for JS masterFoodDatabase Replacement
         function copyMasterCodeToClipboard() {
             const codeString = JSON.stringify(foodDatabase, null, 4);
-            // Copy execution helper using document.execCommand
             const dummy = document.createElement('textarea');
             dummy.value = codeString;
             document.body.appendChild(dummy);
